@@ -1,9 +1,11 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
+import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import java.net.URI
 
 plugins {
@@ -56,10 +58,33 @@ kotlin {
             }
     }
 
-    // iOS targets
-    iosArm64()
-    iosX64()
-    iosSimulatorArm64()
+    // iOS targets — cinterop into PKIXBridge.xcframework (produced by buildPKIXBridge below).
+    // Slice paths match the xcframework layout: device = ios-arm64; both simulators share
+    // the lipo'd ios-arm64_x86_64-simulator slice.
+    val pkixBridgeXcframework = rootProject.file("PKIXBridge/build/PKIXBridge.xcframework")
+    fun pkixBridgeSlice(targetName: String): String = when (targetName) {
+        "iosArm64" -> "ios-arm64"
+        "iosX64", "iosSimulatorArm64" -> "ios-arm64_x86_64-simulator"
+        else -> error("Unknown iOS target: $targetName")
+    }
+
+    listOf(iosArm64(), iosX64(), iosSimulatorArm64()).forEach { target ->
+        val frameworkSearchPath = pkixBridgeXcframework.resolve(pkixBridgeSlice(target.name)).absolutePath
+
+        target.compilations.getByName("main") {
+            cinterops {
+                val PKIXBridge by creating {
+                    definitionFile.set(project.file("src/nativeInterop/cinterop/PKIXBridge.def"))
+                    // -fmodules: PKIXBridge.framework exposes its @objc surface via module.modulemap,
+                    // which requires clang module support.
+                    compilerOpts("-F$frameworkSearchPath", "-fmodules")
+                }
+            }
+        }
+        target.binaries.all {
+            linkerOpts("-framework", "PKIXBridge", "-F$frameworkSearchPath")
+        }
+    }
 
     // Set up targets
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -204,4 +229,26 @@ mavenPublishing {
 
 dependencyCheck {
     skip = true
+}
+
+// Build PKIXBridge.xcframework before cinterop runs. The script invokes xcrun/swiftc/lipo
+// directly (no .xcodeproj wrapping) and produces ios-arm64 + ios-arm64_x86_64-simulator slices.
+// Gated on macOS — non-Darwin CI hosts skip iOS targets entirely.
+val buildPKIXBridge by tasks.registering(Exec::class) {
+    val pkixBridgeDir = rootProject.file("PKIXBridge")
+    workingDir = pkixBridgeDir
+    commandLine("./scripts/build-xcframework.sh")
+
+    inputs.dir(pkixBridgeDir.resolve("Sources"))
+    inputs.file(pkixBridgeDir.resolve("scripts/build-xcframework.sh"))
+    inputs.file(pkixBridgeDir.resolve("Package.swift"))
+    outputs.dir(pkixBridgeDir.resolve("build/PKIXBridge.xcframework"))
+
+    onlyIf { OperatingSystem.current().isMacOsX }
+}
+
+tasks.withType<CInteropProcess>().configureEach {
+    if (interopName == "PKIXBridge") {
+        dependsOn(buildPKIXBridge)
+    }
 }
