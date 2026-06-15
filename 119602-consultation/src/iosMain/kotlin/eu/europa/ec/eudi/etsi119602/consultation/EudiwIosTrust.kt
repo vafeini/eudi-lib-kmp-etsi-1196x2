@@ -64,23 +64,58 @@ public enum class BundledAnchorMethod {
 }
 
 /**
+ * LoTE download URL configuration for [EudiwIosTrust.nonCached] and [EudiwIosTrust.cached].
+ *
+ * Create an instance, set only the contexts you need, and leave the rest `null`.
+ *
+ * ```swift
+ * let urls = TrustListUrls()
+ * urls.pidProviders    = DIGITTrustLists.pidProviders
+ * urls.walletProviders = DIGITTrustLists.walletProviders
+ * urls.mdlProviders    = DIGITTrustLists.mdlProviders
+ * ```
+ */
+public class TrustListUrls {
+    public var pidProviders: String? = null
+    public var walletProviders: String? = null
+    public var wrpacProviders: String? = null
+    public var wrprcProviders: String? = null
+    public var pubEaaProviders: String? = null
+    public var qeaProviders: String? = null
+    public var mdlProviders: String? = null
+}
+
+/**
+ * Bundled (hardcoded) DER certificate anchor configuration for [EudiwIosTrust.usingBundledAnchors].
+ *
+ * Create an instance, set only the contexts you need, and leave the rest `null`.
+ *
+ * ```swift
+ * let anchors = BundledAnchors()
+ * anchors.pid = [myRootCA]
+ * ```
+ */
+public class BundledAnchors {
+    public var pid: List<NSData>? = null
+    public var wallet: List<NSData>? = null
+    public var wrpac: List<NSData>? = null
+    public var wrprc: List<NSData>? = null
+    public var pubEaa: List<NSData>? = null
+    public var qea: List<NSData>? = null
+    public var mdl: List<NSData>? = null
+}
+
+/**
  * One-call assembly of the iOS LoTE-based trust validator, intended for Swift consumers.
  *
  * It wires together: a Darwin [io.ktor.client.HttpClient] → [DownloadSingleLoTE] →
  * [LoadLoTEAndPointers] → [ProvisionTrustAnchorsFromLoTEs.eudiwIos] → [ComposeChainTrust.nonCached],
  * and exposes Swift-friendly entry points that avoid Kotlin value classes ([Uri], [NonEmptyList])
- * at the boundary — LoTE locations are passed as plain URL strings and trust anchors come back as
+ * at the boundary — LoTE locations are passed via [TrustListUrls] and trust anchors come back as
  * a plain list of DER [NSData].
  */
 public object EudiwIosTrust {
 
-    /**
-     * Builds a non-cached validator for the given per-context LoTE download URLs. Pass `null` for
-     * contexts you do not need. Suitable for low-concurrency use (e.g. one validation per screen).
-     *
-     * @param verifyJwtSignature verifies each downloaded LoTE JWT — supply a real implementation in
-     *        production; this is a required, explicit choice so trust is never silently bypassed.
-     */
     /**
      * The use-case key under which the mDL list is registered (in both the locations and the
      * service-type metadata). Swift consumers select the mDL context with
@@ -88,38 +123,29 @@ public object EudiwIosTrust {
      */
     public val mdlUseCase: String get() = "mdl"
 
+    /**
+     * Builds a non-cached validator for the LoTE download URLs in [urls]. Leave any context `null`
+     * in [urls] to skip it. Suitable for low-concurrency use (e.g. one validation per screen).
+     *
+     * @param verifyJwtSignature verifies each downloaded LoTE JWT — supply a real implementation in
+     *        production; this is a required, explicit choice so trust is never silently bypassed.
+     */
     public fun nonCached(
-        pidProvidersUrl: String?,
-        walletProvidersUrl: String?,
-        wrpacProvidersUrl: String?,
-        wrprcProvidersUrl: String?,
-        pubEaaProvidersUrl: String?,
-        qeaProvidersUrl: String?,
-        mdlProvidersUrl: String?,
+        urls: TrustListUrls,
         verifyJwtSignature: VerifyJwtSignature,
     ): ComposeChainTrust<List<NSData>, VerificationContext, NSData> =
         ProvisionTrustAnchorsFromLoTEs
             .eudiwIos(
                 loadLoTEAndPointers = buildLoadLoTEAndPointers(verifyJwtSignature),
-                svcTypePerCtx = buildSvcTypePerCtx(mdlProvidersUrl),
+                svcTypePerCtx = buildSvcTypePerCtx(urls.mdlProviders),
             )
-            .nonCached(
-                buildLocations(
-                    pidProvidersUrl,
-                    walletProvidersUrl,
-                    wrpacProvidersUrl,
-                    wrprcProvidersUrl,
-                    pubEaaProvidersUrl,
-                    qeaProvidersUrl,
-                    mdlProvidersUrl,
-                ),
-            )
+            .nonCached(buildLocations(urls))
 
     /**
      * Builds a **cached** validator: trust anchors are resolved from the LoTEs once per context and
      * kept in memory for [ttlHours] hours, so repeated [CachedTrustValidator.trustAnchors] /
      * [CachedTrustValidator.validate] calls within that window are served without re-downloading.
-     * Pass `null` for contexts you do not need.
+     * Leave any context `null` in [urls] to skip it.
      *
      * Suited to higher-concurrency use (a wallet validating many credentials). The returned
      * [CachedTrustValidator] **owns** the in-memory cache: hold it for the session and call
@@ -133,13 +159,7 @@ public object EudiwIosTrust {
      *        production; this is a required, explicit choice so trust is never silently bypassed.
      */
     public fun cached(
-        pidProvidersUrl: String?,
-        walletProvidersUrl: String?,
-        wrpacProvidersUrl: String?,
-        wrprcProvidersUrl: String?,
-        pubEaaProvidersUrl: String?,
-        qeaProvidersUrl: String?,
-        mdlProvidersUrl: String?,
+        urls: TrustListUrls,
         ttlHours: Double,
         verifyJwtSignature: VerifyJwtSignature,
     ): CachedTrustValidator {
@@ -147,41 +167,66 @@ public object EudiwIosTrust {
         val validator = ProvisionTrustAnchorsFromLoTEs
             .eudiwIos(
                 loadLoTEAndPointers = buildLoadLoTEAndPointers(verifyJwtSignature),
-                svcTypePerCtx = buildSvcTypePerCtx(mdlProvidersUrl),
+                svcTypePerCtx = buildSvcTypePerCtx(urls.mdlProviders),
             )
             .cached(
                 disposableScope = scope,
-                loteLocationsSupported = buildLocations(
-                    pidProvidersUrl,
-                    walletProvidersUrl,
-                    wrpacProvidersUrl,
-                    wrprcProvidersUrl,
-                    pubEaaProvidersUrl,
-                    qeaProvidersUrl,
-                    mdlProvidersUrl,
-                ),
+                loteLocationsSupported = buildLocations(urls),
                 ttl = ttlHours.hours,
             )
         return CachedTrustValidator(scope, validator)
     }
 
-    private fun buildLocations(
-        pidProvidersUrl: String?,
-        walletProvidersUrl: String?,
-        wrpacProvidersUrl: String?,
-        wrprcProvidersUrl: String?,
-        pubEaaProvidersUrl: String?,
-        qeaProvidersUrl: String?,
-        mdlProvidersUrl: String?,
-    ): SupportedLists<Uri> =
+    /**
+     * Builds a validator backed by **bundled / hardcoded** certificate anchors instead of a
+     * downloaded LoTE — no network, JWT, or LoTE is involved. This is the iOS counterpart of the
+     * JVM `IsChainTrustedForContext.usingKeyStore(...)`.
+     *
+     * Set only the contexts you need on [anchors]; leave the rest `null`. The mDL context is
+     * registered under [mdlUseCase] (i.e. `VerificationContext.EAA("mdl")`).
+     *
+     * No ETSI end-entity profile is applied — these contexts validate purely by [method] — so bundled
+     * CA anchors are not rejected by the strict EUDI end-entity profiles.
+     *
+     * @param method [BundledAnchorMethod.PKIX] for chain-to-anchor path validation (anchors are CA
+     *        certificates) or [BundledAnchorMethod.DIRECT_TRUST] for leaf pinning (anchors are the
+     *        exact end-entity certificates).
+     */
+    public fun usingBundledAnchors(
+        anchors: BundledAnchors,
+        method: BundledAnchorMethod,
+    ): ComposeChainTrust<List<NSData>, VerificationContext, NSData> {
+        val anchorsByContext: Map<VerificationContext, List<NSData>> = buildMap {
+            anchors.pid?.let { put(VerificationContext.PID, it) }
+            anchors.wallet?.let { put(VerificationContext.WalletProviderAttestation, it) }
+            anchors.wrpac?.let { put(VerificationContext.WalletRelyingPartyAccessCertificate, it) }
+            anchors.wrprc?.let { put(VerificationContext.WalletRelyingPartyRegistrationCertificate, it) }
+            anchors.pubEaa?.let { put(VerificationContext.PubEAA, it) }
+            anchors.qea?.let { put(VerificationContext.QEAA, it) }
+            anchors.mdl?.let { put(VerificationContext.EAA(mdlUseCase), it) }
+        }
+
+        val getTrustAnchors = GetTrustAnchors<VerificationContext, NSData> { ctx ->
+            anchorsByContext[ctx]?.let { NonEmptyList.nelOrNull(it) }
+        }
+
+        val validateChain: ValidateCertificateChain<List<NSData>, NSData> = when (method) {
+            BundledAnchorMethod.PKIX -> ValidateCertificateChainUsingPKIXIos()
+            BundledAnchorMethod.DIRECT_TRUST -> ValidateCertificateChainUsingDirectTrustIos
+        }
+
+        return ComposeChainTrust(getTrustAnchors.validator(anchorsByContext.keys, validateChain))
+    }
+
+    private fun buildLocations(urls: TrustListUrls): SupportedLists<Uri> =
         SupportedLists(
-            pidProviders = pidProvidersUrl?.let(::Uri),
-            walletProviders = walletProvidersUrl?.let(::Uri),
-            wrpacProviders = wrpacProvidersUrl?.let(::Uri),
-            wrprcProviders = wrprcProvidersUrl?.let(::Uri),
-            pubEaaProviders = pubEaaProvidersUrl?.let(::Uri),
-            qeaProviders = qeaProvidersUrl?.let(::Uri),
-            eaaProviders = buildMap { mdlProvidersUrl?.let { put(mdlUseCase, Uri(it)) } },
+            pidProviders = urls.pidProviders?.let(::Uri),
+            walletProviders = urls.walletProviders?.let(::Uri),
+            wrpacProviders = urls.wrpacProviders?.let(::Uri),
+            wrprcProviders = urls.wrprcProviders?.let(::Uri),
+            pubEaaProviders = urls.pubEaaProviders?.let(::Uri),
+            qeaProviders = urls.qeaProviders?.let(::Uri),
+            eaaProviders = buildMap { urls.mdlProviders?.let { put(mdlUseCase, Uri(it)) } },
         )
 
     // The baseline EU metadata has no mDL entry, so add one when an mDL URL is supplied.
@@ -198,54 +243,6 @@ public object EudiwIosTrust {
             verifyJwtSignature = verifyJwtSignature,
             loadLoTE = DownloadSingleLoTE(IosLoTEHttpClient.create()),
         )
-
-    /**
-     * Builds a validator backed by **bundled / hardcoded** certificate anchors instead of a
-     * downloaded LoTE — no network, JWT, or LoTE is involved. This is the iOS counterpart of the
-     * JVM `IsChainTrustedForContext.usingKeyStore(...)`.
-     *
-     * Pass the DER anchors ([NSData]) shipped with the app per context; pass `null` for contexts you
-     * do not need. The mDL context is registered under [mdlUseCase] (i.e. `VerificationContext.EAA("mdl")`).
-     * The returned validator uses the same [trustAnchors] / [validate] entry points as [nonCached].
-     *
-     * No ETSI end-entity profile is applied — these contexts validate purely by [method] — so bundled
-     * CA anchors are not rejected by the strict EUDI end-entity profiles.
-     *
-     * @param method [BundledAnchorMethod.PKIX] for chain-to-anchor path validation (anchors are CA
-     *        certificates) or [BundledAnchorMethod.DIRECT_TRUST] for leaf pinning (anchors are the
-     *        exact end-entity certificates).
-     */
-    public fun usingBundledAnchors(
-        pidAnchors: List<NSData>?,
-        walletAnchors: List<NSData>?,
-        wrpacAnchors: List<NSData>?,
-        wrprcAnchors: List<NSData>?,
-        pubEaaAnchors: List<NSData>?,
-        qeaAnchors: List<NSData>?,
-        mdlAnchors: List<NSData>?,
-        method: BundledAnchorMethod,
-    ): ComposeChainTrust<List<NSData>, VerificationContext, NSData> {
-        val anchorsByContext: Map<VerificationContext, List<NSData>> = buildMap {
-            pidAnchors?.let { put(VerificationContext.PID, it) }
-            walletAnchors?.let { put(VerificationContext.WalletProviderAttestation, it) }
-            wrpacAnchors?.let { put(VerificationContext.WalletRelyingPartyAccessCertificate, it) }
-            wrprcAnchors?.let { put(VerificationContext.WalletRelyingPartyRegistrationCertificate, it) }
-            pubEaaAnchors?.let { put(VerificationContext.PubEAA, it) }
-            qeaAnchors?.let { put(VerificationContext.QEAA, it) }
-            mdlAnchors?.let { put(VerificationContext.EAA(mdlUseCase), it) }
-        }
-
-        val getTrustAnchors = GetTrustAnchors<VerificationContext, NSData> { ctx ->
-            anchorsByContext[ctx]?.let { NonEmptyList.nelOrNull(it) }
-        }
-
-        val validateChain: ValidateCertificateChain<List<NSData>, NSData> = when (method) {
-            BundledAnchorMethod.PKIX -> ValidateCertificateChainUsingPKIXIos()
-            BundledAnchorMethod.DIRECT_TRUST -> ValidateCertificateChainUsingDirectTrustIos
-        }
-
-        return ComposeChainTrust(getTrustAnchors.validator(anchorsByContext.keys, validateChain))
-    }
 
     private fun mdlMeta(): LotEMeta<VerificationContext> = LotEMeta(
         svcTypePerCtx = buildMap {
