@@ -5,6 +5,7 @@ import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 import java.net.URI
@@ -99,6 +100,16 @@ kotlin {
 
     listOf(iosArm64(), iosX64(), iosSimulatorArm64()).forEach { target ->
         val frameworkSearchPath = pkixBridgeXcframework.resolve(pkixBridgeSlice(target.name)).absolutePath
+
+        target.compilations.getByName("main") {
+            cinterops {
+                create("PKIXBridge") {
+                    definitionFile.set(project.file("../consultation/src/nativeInterop/cinterop/PKIXBridge.def"))
+                    compilerOpts("-F$frameworkSearchPath", "-fmodules")
+                }
+            }
+        }
+
         target.binaries.framework {
 //            baseName = frameworkName
             isStatic = false
@@ -161,6 +172,7 @@ kotlin {
         @Suppress("UNUSED")
         val iosMain by getting {
             dependencies {
+                api(projects.etsi1196x2Consultation)
                 // Darwin (NSURLSession) HTTP engine, linked into the umbrella framework so
                 // HttpClient(Darwin) works at runtime on iOS.
                 implementation(libs.ktor.client.darwin)
