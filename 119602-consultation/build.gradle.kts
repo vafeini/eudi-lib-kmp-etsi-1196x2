@@ -5,7 +5,6 @@ import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 import java.net.URI
 
@@ -19,8 +18,8 @@ plugins {
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dependency.check)
     alias(libs.plugins.atomicfu)
-//    alias(libs.plugins.kmmbridge)
-    alias(libs.plugins.kmmbridge.github)
+    alias(libs.plugins.kmmbridge)
+//    alias(libs.plugins.kmmbridge.github)
 }
 
 repositories {
@@ -95,7 +94,7 @@ kotlin {
     // and data-model APIs so Swift sees one module ("EudiEtsi1196x2") with the full surface,
     // and statically links the PKIXBridge cinterop so the framework is self-contained.
     val frameworkName = "EudiEtsi1196x2"
-    val umbrella = XCFramework(frameworkName)
+//    val umbrella = XCFramework(frameworkName)
 
     listOf(iosArm64(), iosX64(), iosSimulatorArm64()).forEach { target ->
         val frameworkSearchPath = pkixBridgeXcframework.resolve(pkixBridgeSlice(target.name)).absolutePath
@@ -110,11 +109,11 @@ kotlin {
         }
 
         target.binaries.framework {
-//            baseName = frameworkName
+            baseName = frameworkName
             isStatic = false
             export(projects.etsi1196x2Consultation)
             export(projects.etsi119602DataModel)
-            umbrella.add(this)
+//            umbrella.add(this)
         }
         target.binaries.all {
             linkerOpts("-framework", "PKIXBridge", "-F$frameworkSearchPath")
@@ -304,5 +303,8 @@ dependencyCheck {
 }
 
 kmmbridge {
-    gitHubReleaseArtifacts()
+    gitHubReleaseArtifacts(
+        repository = "vafeini/eudi-lib-kmp-etsi-1196x2",
+    )
+    spm()
 }
