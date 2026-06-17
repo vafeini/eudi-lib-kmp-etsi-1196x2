@@ -19,6 +19,8 @@ plugins {
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dependency.check)
     alias(libs.plugins.atomicfu)
+//    alias(libs.plugins.kmmbridge)
+    alias(libs.plugins.kmmbridge.github)
 }
 
 repositories {
@@ -92,12 +94,13 @@ kotlin {
     // Single umbrella framework for iOS consumers (SwiftPM). It re-exports the consultation
     // and data-model APIs so Swift sees one module ("EudiEtsi1196x2") with the full surface,
     // and statically links the PKIXBridge cinterop so the framework is self-contained.
-    val umbrella = XCFramework("EudiEtsi1196x2")
+    val frameworkName = "EudiEtsi1196x2"
+    val umbrella = XCFramework(frameworkName)
 
     listOf(iosArm64(), iosX64(), iosSimulatorArm64()).forEach { target ->
         val frameworkSearchPath = pkixBridgeXcframework.resolve(pkixBridgeSlice(target.name)).absolutePath
         target.binaries.framework {
-            baseName = "EudiEtsi1196x2"
+//            baseName = frameworkName
             isStatic = false
             export(projects.etsi1196x2Consultation)
             export(projects.etsi119602DataModel)
@@ -287,4 +290,8 @@ mavenPublishing {
 
 dependencyCheck {
     skip = true
+}
+
+kmmbridge {
+    gitHubReleaseArtifacts()
 }
