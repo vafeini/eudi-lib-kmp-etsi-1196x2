@@ -126,9 +126,6 @@ kotlin {
                 withJvm()
                 withAndroidTarget()
             }
-            group("ios") {
-                withIos()
-            }
         }
     }
 
@@ -140,6 +137,10 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
                 implementation(libs.atomicfu)
             }
+        }
+
+        @Suppress("UNUSED")
+        val iosMain by getting {
         }
 
         @Suppress("UNUSED")
