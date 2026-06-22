@@ -1,7 +1,11 @@
-// swift-tools-version:${swiftToolVersion.name}
+// swift-tools-version:5.9
 import PackageDescription
 
-let packageName = "$frameworkName"
+// BEGIN KMMBRIDGE VARIABLES BLOCK (do not edit)
+let remoteKotlinUrl = ""
+let remoteKotlinChecksum = ""
+let packageName = ""
+// END KMMBRIDGE BLOCK
 
 let package = Package(
     name: packageName,
@@ -17,7 +21,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: packageName,
-            path: "./${xcFrameworkPath}/\(packageName).xcframework"
+            url: remoteKotlinUrl,
+            checksum: remoteKotlinChecksum
         )
     ]
 )

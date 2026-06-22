@@ -306,5 +306,5 @@ kmmbridge {
     gitHubReleaseArtifacts(
         repository = "vafeini/eudi-lib-kmp-etsi-1196x2",
     )
-    spm()
+    spm(swiftToolVersion = "5.9")
 }
