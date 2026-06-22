@@ -17,8 +17,8 @@ jobs:
 
     env:
       INPUT_VERSION: ${{ github.event.inputs.version }}
-      GRADLE_PROJECT: etsi-119602-consultation
-      OUTPUT_DIR: 119602-consultation/build/XCFrameworks/release
+      GRADLE_PROJECT: etsi-1196x2-ios
+      OUTPUT_DIR: ios/build/XCFrameworks/release
       FRAMEWORK_NAME: EudiEtsi1196x2
       PACKAGE_NAME: EudiEtsi1196x2
       ZIP_NAME: EudiEtsi1196x2.xcframework.zip

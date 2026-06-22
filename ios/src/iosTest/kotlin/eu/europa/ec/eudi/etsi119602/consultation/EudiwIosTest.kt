@@ -76,16 +76,9 @@ class EudiwIosTest {
 
     @Test
     fun usingBundledAnchors_pkix_validatesAgainstBundledRoot_isTrusted() = runTest {
-        val validator = EudiwIosTrust.usingBundledAnchors(
-            pidAnchors = listOf(E2eTestCerts.rootDer.toNSData()),
-            walletAnchors = null,
-            wrpacAnchors = null,
-            wrprcAnchors = null,
-            pubEaaAnchors = null,
-            qeaAnchors = null,
-            mdlAnchors = null,
-            method = BundledAnchorMethod.PKIX,
-        )
+        val anchors = BundledAnchors()
+        anchors.pid = listOf(E2eTestCerts.rootDer.toNSData())
+        val validator = EudiwIosTrust.usingBundledAnchors(anchors = anchors, method = BundledAnchorMethod.PKIX)
 
         val result = EudiwIosTrust.validate(
             validator = validator,
@@ -99,16 +92,9 @@ class EudiwIosTest {
     @Test
     fun usingBundledAnchors_directTrust_pinsLeaf_isTrusted() = runTest {
         val leaf = E2eTestCerts.leafDer.toNSData()
-        val validator = EudiwIosTrust.usingBundledAnchors(
-            pidAnchors = null,
-            walletAnchors = null,
-            wrpacAnchors = null,
-            wrprcAnchors = null,
-            pubEaaAnchors = null,
-            qeaAnchors = null,
-            mdlAnchors = listOf(leaf),
-            method = BundledAnchorMethod.DIRECT_TRUST,
-        )
+        val anchors = BundledAnchors()
+        anchors.mdl = listOf(leaf)
+        val validator = EudiwIosTrust.usingBundledAnchors(anchors = anchors, method = BundledAnchorMethod.DIRECT_TRUST)
 
         val result = EudiwIosTrust.validate(
             validator = validator,
@@ -121,16 +107,9 @@ class EudiwIosTest {
 
     @Test
     fun usingBundledAnchors_unconfiguredContext_isNotTrusted() = runTest {
-        val validator = EudiwIosTrust.usingBundledAnchors(
-            pidAnchors = listOf(E2eTestCerts.rootDer.toNSData()),
-            walletAnchors = null,
-            wrpacAnchors = null,
-            wrprcAnchors = null,
-            pubEaaAnchors = null,
-            qeaAnchors = null,
-            mdlAnchors = null,
-            method = BundledAnchorMethod.PKIX,
-        )
+        val anchors = BundledAnchors()
+        anchors.pid = listOf(E2eTestCerts.rootDer.toNSData())
+        val validator = EudiwIosTrust.usingBundledAnchors(anchors = anchors, method = BundledAnchorMethod.PKIX)
 
         // QEAA has no bundled anchors, so it is rejected without ever invoking SecTrust.
         val result = EudiwIosTrust.validate(
@@ -180,14 +159,10 @@ class EudiwIosTest {
 
     @Test
     fun cachedFacade_buildsAndDisposes() {
+        val urls = TrustListUrls()
+        urls.pidProviders = "https://example.test/pid"
         val handle = EudiwIosTrust.cached(
-            pidProvidersUrl = "https://example.test/pid",
-            walletProvidersUrl = null,
-            wrpacProvidersUrl = null,
-            wrprcProvidersUrl = null,
-            pubEaaProvidersUrl = null,
-            qeaProvidersUrl = null,
-            mdlProvidersUrl = null,
+            urls = urls,
             ttlHours = 1.0,
             verifyJwtSignature = InsecureAcceptAllJwtSignature,
         )
