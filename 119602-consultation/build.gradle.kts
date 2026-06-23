@@ -64,7 +64,7 @@ kotlin {
     // iOS targets — cinterop into PKIXBridge.xcframework (produced by buildPKIXBridge below).
     // Slice paths match the xcframework layout: device = ios-arm64; both simulators share
     // the lipo'd ios-arm64_x86_64-simulator slice.
-    val pkixBridgeXcframework = rootProject.file("PKIXBridge/build/PKIXBridge.xcframework")
+    val pkixBridgeXcframework = rootProject.file("ios/cinterop/build/PKIXBridge.xcframework")
 
     fun pkixBridgeSlice(targetName: String): String =
         when (targetName) {
@@ -73,17 +73,40 @@ kotlin {
             else -> error("Unknown iOS target: $targetName")
         }
 
+    // Resolve the Swift toolchain's static-library directory so the Kotlin/Native linker can find
+    // the Swift ABI compatibility shims that PKIXBridge's objects force-load.
+    val swiftLibBase: String? =
+        if (org.gradle.internal.os.OperatingSystem.current().isMacOsX) {
+            providers.exec { commandLine("xcode-select", "-p") }
+                .standardOutput.asText.get().trim() +
+                "/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
+        } else {
+            null
+        }
+
+    fun swiftLibPlatform(targetName: String): String =
+        when (targetName) {
+            "iosArm64" -> "iphoneos"
+            "iosX64", "iosSimulatorArm64" -> "iphonesimulator"
+            else -> error("Unknown iOS target: $targetName")
+        }
+
     listOf(iosArm64(), iosX64(), iosSimulatorArm64()).forEach { target ->
         val frameworkSearchPath = pkixBridgeXcframework.resolve(pkixBridgeSlice(target.name)).absolutePath
-
         target.compilations.getByName("main") {
             cinterops {
                 create("PKIXBridge") {
-                    definitionFile.set(project.file("../ios/src/nativeInterop/cinterop/PKIXBridge.def"))
+                    definitionFile.set(rootProject.file("ios/cinterop/PKIXBridge.def"))
                     // -fmodules: PKIXBridge.framework exposes its @objc surface via module.modulemap,
                     // which requires clang module support.
                     compilerOpts("-F$frameworkSearchPath", "-fmodules")
                 }
+            }
+        }
+        target.binaries.all {
+            linkerOpts("-framework", "PKIXBridge", "-F$frameworkSearchPath")
+            if (swiftLibBase != null) {
+                linkerOpts("-L$swiftLibBase/${swiftLibPlatform(target.name)}")
             }
         }
     }
