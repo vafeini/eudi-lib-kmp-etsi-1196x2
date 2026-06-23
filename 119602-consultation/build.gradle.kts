@@ -1,11 +1,12 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
+import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import java.net.URI
 
 plugins {
@@ -18,8 +19,6 @@ plugins {
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dependency.check)
     alias(libs.plugins.atomicfu)
-    alias(libs.plugins.kmmbridge)
-//    alias(libs.plugins.kmmbridge.github)
 }
 
 repositories {
@@ -62,9 +61,9 @@ kotlin {
             }
     }
 
-    // iOS targets. This module links final iOS binaries (e.g. test executables) that transitively
-    // use the consultation module's PKIXBridge cinterop, so it must repeat the framework + Swift
-    // compatibility-shim linker options (cinterop linker options do not propagate transitively).
+    // iOS targets — cinterop into PKIXBridge.xcframework (produced by buildPKIXBridge below).
+    // Slice paths match the xcframework layout: device = ios-arm64; both simulators share
+    // the lipo'd ios-arm64_x86_64-simulator slice.
     val pkixBridgeXcframework = rootProject.file("PKIXBridge/build/PKIXBridge.xcframework")
 
     fun pkixBridgeSlice(targetName: String): String =
@@ -74,51 +73,17 @@ kotlin {
             else -> error("Unknown iOS target: $targetName")
         }
 
-    val swiftLibBase: String? =
-        if (OperatingSystem.current().isMacOsX) {
-            providers.exec { commandLine("xcode-select", "-p") }
-                .standardOutput.asText.get().trim() +
-                "/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
-        } else {
-            null
-        }
-
-    fun swiftLibPlatform(targetName: String): String =
-        when (targetName) {
-            "iosArm64" -> "iphoneos"
-            "iosX64", "iosSimulatorArm64" -> "iphonesimulator"
-            else -> error("Unknown iOS target: $targetName")
-        }
-
-    // Single umbrella framework for iOS consumers (SwiftPM). It re-exports the consultation
-    // and data-model APIs so Swift sees one module ("EudiEtsi1196x2") with the full surface,
-    // and statically links the PKIXBridge cinterop so the framework is self-contained.
-    val frameworkName = "EudiEtsi1196x2"
-//    val umbrella = XCFramework(frameworkName)
-
     listOf(iosArm64(), iosX64(), iosSimulatorArm64()).forEach { target ->
         val frameworkSearchPath = pkixBridgeXcframework.resolve(pkixBridgeSlice(target.name)).absolutePath
 
         target.compilations.getByName("main") {
             cinterops {
                 create("PKIXBridge") {
-                    definitionFile.set(project.file("../consultation/src/nativeInterop/cinterop/PKIXBridge.def"))
+                    definitionFile.set(project.file("../ios/src/nativeInterop/cinterop/PKIXBridge.def"))
+                    // -fmodules: PKIXBridge.framework exposes its @objc surface via module.modulemap,
+                    // which requires clang module support.
                     compilerOpts("-F$frameworkSearchPath", "-fmodules")
                 }
-            }
-        }
-
-        target.binaries.framework {
-            baseName = frameworkName
-            isStatic = false
-            export(projects.etsi1196x2Consultation)
-            export(projects.etsi119602DataModel)
-//            umbrella.add(this)
-        }
-        target.binaries.all {
-            linkerOpts("-framework", "PKIXBridge", "-F$frameworkSearchPath")
-            if (swiftLibBase != null) {
-                linkerOpts("-L$swiftLibBase/${swiftLibPlatform(target.name)}")
             }
         }
     }
@@ -302,9 +267,8 @@ dependencyCheck {
     skip = true
 }
 
-kmmbridge {
-    gitHubReleaseArtifacts(
-        repository = "vafeini/eudi-lib-kmp-etsi-1196x2",
-    )
-    spm(swiftToolVersion = "5.9")
+tasks.withType<CInteropProcess>().configureEach {
+    if (interopName == "PKIXBridge") {
+        dependsOn(":etsi-1196x2-ios:buildPKIXBridge")
+    }
 }
