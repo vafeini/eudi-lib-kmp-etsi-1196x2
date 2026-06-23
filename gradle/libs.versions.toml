@@ -60,4 +60,3 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 kmmbridge = { id = "co.touchlab.kmmbridge", version.ref = "kmmBridge" }
 kmmbridge-github = { id = "co.touchlab.kmmbridge.github", version.ref = "kmmBridge" }
-kmmbridge-spm = { id = "co.touchlab.kmmbridge.spm", version.ref = "kmmBridge" }

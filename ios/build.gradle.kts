@@ -9,14 +9,65 @@ plugins {
 }
 
 kotlin {
+    // PKIXBridge.xcframework produced by buildPKIXBridge below.
+    val pkixBridgeXcframework = projectDir.resolve("cinterop/build/PKIXBridge.xcframework")
+
+    fun pkixBridgeSlice(targetName: String): String =
+        when (targetName) {
+            "iosArm64" -> "ios-arm64"
+            "iosX64", "iosSimulatorArm64" -> "ios-arm64_x86_64-simulator"
+            else -> error("Unknown iOS target: $targetName")
+        }
+
+    // Resolve the Swift toolchain's static-library directory so the Kotlin/Native linker can find
+    // the Swift ABI compatibility shims that PKIXBridge's objects force-load.
+    val swiftLibBase: String? =
+        if (OperatingSystem.current().isMacOsX) {
+            providers.exec { commandLine("xcode-select", "-p") }
+                .standardOutput.asText.get().trim() +
+                    "/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
+        } else {
+            null
+        }
+
+    fun swiftLibPlatform(targetName: String): String =
+        when (targetName) {
+            "iosArm64" -> "iphoneos"
+            "iosX64", "iosSimulatorArm64" -> "iphonesimulator"
+            else -> error("Unknown iOS target: $targetName")
+        }
+
+    // Single umbrella framework for iOS consumers (SwiftPM). Re-exports the consultation and
+    // data-model APIs so Swift sees one module ("EudiEtsi1196x2") with the full surface, and
+    // statically links the PKIXBridge cinterop so the framework is self-contained.
+
     val frameworkName = "EudiEtsi1196x2"
+
     listOf(iosArm64(), iosX64(), iosSimulatorArm64()).forEach { target ->
+        val frameworkSearchPath = pkixBridgeXcframework.resolve(pkixBridgeSlice(target.name)).absolutePath
+
+        target.compilations.getByName("main") {
+            cinterops {
+                create("PKIXBridge") {
+                    definitionFile.set(project.file("cinterop/PKIXBridge.def"))
+                    // -fmodules: PKIXBridge.framework exposes its @objc surface via module.modulemap.
+                    compilerOpts("-F$frameworkSearchPath", "-fmodules")
+                }
+            }
+        }
+        
         target.binaries.framework {
             baseName = frameworkName
             isStatic = false
             export(projects.etsi1196x2Consultation)
             export(projects.etsi119602Consultation)
             export(projects.etsi119602DataModel)
+        }
+        target.binaries.all {
+            linkerOpts("-framework", "PKIXBridge", "-F$frameworkSearchPath")
+            if (swiftLibBase != null) {
+                linkerOpts("-L$swiftLibBase/${swiftLibPlatform(target.name)}")
+            }
         }
     }
 
