@@ -1,11 +1,11 @@
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.internal.os.OperatingSystem
-import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kmmbridge.github)
+    alias(libs.plugins.kmmbridge)
+    id("maven-publish")
 }
 
 kotlin {
@@ -82,8 +82,21 @@ kotlin {
 }
 
 kmmbridge {
-    gitHubReleaseArtifacts()
+    mavenPublishArtifacts()
     spm(swiftToolVersion = "5.9")
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "githubPackages"
+            url = uri("https://maven.pkg.github.com/vafeini/eudi-lib-kmp-etsi-1196x2")
+            credentials {
+                username = providers.environmentVariable("GITHUB_ACTOR").orNull
+                password = providers.environmentVariable("GITHUB_TOKEN").orNull
+            }
+        }
+    }
 }
 
 // Build PKIXBridge.xcframework before cinterop runs. The script invokes xcrun/swiftc/lipo
@@ -100,13 +113,6 @@ val buildPKIXBridge by tasks.registering(Exec::class) {
     outputs.dir(pkixBridgeDir.resolve("build/PKIXBridge.xcframework"))
 
     onlyIf { OperatingSystem.current().isMacOsX }
-}
-
-// SecTrust evaluation requires the trust daemon (trustd), which is only reliably available on a
-// fully-booted simulator. Run simulator tests against an already-booted device instead.
-tasks.withType<KotlinNativeSimulatorTest>().configureEach {
-    standalone.set(false)
-    device.set("booted")
 }
 
 tasks.withType<CInteropProcess>().configureEach {

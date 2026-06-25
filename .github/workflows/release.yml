@@ -48,10 +48,12 @@ jobs:
     runs-on: macos-latest
     permissions:
       contents: write
+      packages: write
     steps:
       - name: Checkout the repo with tags
         uses: actions/checkout@v6
         with:
+          ref: main
           fetch-depth: 0
           fetch-tags: true
 
@@ -62,15 +64,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      - name: Find Artifact Release
-        id: release
-        uses: softprops/action-gh-release@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ github.ref_name }}
-
       - name: Build XCFramework
-        run: ./gradlew kmmBridgePublish -PENABLE_PUBLISHING=true -PNATIVE_BUILD_TYPE=RELEASE -PGITHUB_PUBLISH_TOKEN="${{ secrets.GITHUB_TOKEN }}" -PGITHUB_REPO="${{ github.repository }}" -PGITHUB_ARTIFACT_RELEASE_ID="${{ steps.release.outputs.id }}" --no-daemon --info --stacktrace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./gradlew kmmBridgePublish -PENABLE_PUBLISHING=true -PNATIVE_BUILD_TYPE=RELEASE --no-configuration-cache --no-daemon --info --stacktrace
 
       - name: Update release tag
         uses: touchlab/ga-update-release-tag@v1
