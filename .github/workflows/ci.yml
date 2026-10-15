@@ -40,8 +40,9 @@ jobs:
         run: ./kotlin test --p jvm
       - id: extract
         if: matrix.os == 'ubuntu-latest' # Extract version only once
-        name: Extract code version from consultation-dss/module.yaml
-        run: echo "CODE_VERSION=$(awk -F': *' '/^    version:/{print $2; exit}' publishing.module-template.yaml)" >> $GITHUB_OUTPUT
+        name: Extract code version
+        run: |
+          echo "CODE_VERSION=$(awk -F': *' '/^    version:/{print $2; exit}' publishing.module-template.yaml)" >> $GITHUB_OUTPUT
 
   publish-to-sonatype-snapshot:
     name: Publish to sonatype.org (SNAPSHOT)
