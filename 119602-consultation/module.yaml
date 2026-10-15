@@ -1,0 +1,64 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android, iosArm64, iosX64, iosSimulatorArm64]
+
+description: A library for checking certificates against ETSI 1196x2 standards
+
+apply:
+  - //publishing.module-template.yaml
+
+aliases:
+  - jvmAndAndroid: [jvm, android]
+
+dependencies:
+  - //119602-data-model: exported
+  - //consultation: exported
+  - $libs.atomicfu
+  - $libs.kotlinx.io.core
+  - $libs.ktor.client.core: exported
+
+dependencies@jvmAndAndroid:
+  - $libs.bouncy.castle
+
+dependencies@ios:
+  - swiftPackage:
+      repository: https://github.com/vafeini/PKIXBridge.git
+      version: v0.0.1
+      products: ["PKIXBridge"]
+
+test-dependencies:
+  - $libs.kotlinx.coroutines.test
+  - $libs.ktor.client.content.negotiation
+  - $libs.ktor.serialization.json
+
+test-dependencies@jvmAndAndroid:
+  - $libs.ktor.client.java
+  - $libs.eudi.lib.jvm.sdjwt
+
+test-dependencies@android:
+  - $libs.ktor.client.okhttp
+
+settings:
+  kotlin:
+    languageVersion: 2.2
+    serialization: enabled
+    optIns:
+      - kotlinx.serialization.ExperimentalSerializationApi
+      - kotlin.io.encoding.ExperimentalEncodingApi
+      - kotlin.ExperimentalStdlibApi
+      - kotlin.time.ExperimentalTime
+      - kotlin.contracts.ExperimentalContracts
+      - kotlinx.cinterop.ExperimentalForeignApi
+    explicitApi: warning
+  android:
+    namespace: eu.europa.ec.eudi.etsi119602.consultation
+    compileSdk: 34
+    minSdk: 26
+  jvm:
+    jdk:
+      version: 17
+  ktor:
+    enabled: true
+  publishing:
+    enabled: true
+    artifactId: etsi-119602-consultation

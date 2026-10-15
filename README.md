@@ -95,19 +95,20 @@ declares the Swift API surface and expects the consumer to supply the
 implementation at link time — the same contract as `androidx.sqlite` expecting
 `-lsqlite3`. The library does not propagate its own linker settings.
 
-You must therefore build `PKIXBridge` once, on macOS, and link it into your
-iOS targets:
+PKIXBridge is distributed separately via SwiftPM. You must link it in your
+iOS targets at build time:
 
 ```bash
-./gradlew :etsi-1196x2-ios:buildPKIXBridge
-# Output: ios/cinterop/build/PKIXBridge.xcframework
+# Build PKIXBridge once on macOS using the Toolchain plugin:
+./kotlin do buildXcframework
+# Output: <project>/PKIXBridge/build/PKIXBridge.xcframework
 ```
 
-Then configure the linking in `build.gradle.kts`:
+Then configure the linking in your `build.gradle.kts`:
 
 ```kotlin
 kotlin {
-    val pkix = "<path-to>/PKIXBridge.xcframework"
+    val pkix = "<path-to>/PKIXBridge/build/PKIXBridge.xcframework"
     val swiftShims = "<xcode-select -p>/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift"
 
     // Device (iosArm64)

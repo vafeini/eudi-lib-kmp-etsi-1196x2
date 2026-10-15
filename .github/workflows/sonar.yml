@@ -35,9 +35,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-provider: basic
       - run: ./gradlew test koverXmlReport
       - uses: sonarsource/sonarqube-scan-action@v8.2.2
         if: (github.event_name == 'push'|| github.event_name == 'workflow_dispatch')
@@ -51,10 +48,8 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
             -Dsonar.kotlin.coverage.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
             -Dsonar.kotlin.multiplatform.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
-            -Dsonar.sources=consultation/src/commonMain,consultation/src/jvmAndAndroidMain,consultation-dss/src/jvmAndAndroidMain,119602-data-model/src/commonMain,119602-consultation/src/commonMain
-            -Dsonar.tests=consultation/src/jvmAndAndroidTest,consultation-dss/src/jvmAndAndroidTest,119602-data-model/src/jvmAndAndroidTest,119602-consultation/src/jvmAndAndroidTest,119602-consultation/src/commonTest
-            -Dsonar.java.binaries=consultation/build/classes/kotlin/jvm,consultation-dss/build/classes/kotlin/jvm,119602-data-model/build/classes/kotlin/jvm,119602-consultation/build/classes/kotlin/jvm
-            -Dsonar.kotlin.binaries=consultation/build/classes/kotlin/jvm,consultation-dss/build/classes/kotlin/jvm,119602-data-model/build/classes/kotlin/jvm,119602-consultation/build/classes/kotlin/jvm
+            -Dsonar.sources=consultation/src,consultation-dss/src,119602-data-model/src,119602-consultation/src
+            -Dsonar.tests=consultation/src,consultation-dss/src,119602-data-model/src,119602-consultation/src
       - uses: sonarsource/sonarqube-scan-action@v8.2.2
         if: (github.event_name == 'pull_request_target')
         with:
@@ -70,10 +65,8 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
             -Dsonar.kotlin.coverage.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
             -Dsonar.kotlin.multiplatform.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
-            -Dsonar.sources=consultation/src/commonMain,consultation/src/jvmAndAndroidMain,consultation-dss/src/jvmAndAndroidMain,119602-data-model/src/commonMain,119602-consultation/src/commonMain
-            -Dsonar.tests=consultation/src/jvmAndAndroidTest,consultation-dss/src/jvmAndAndroidTest,119602-data-model/src/jvmAndAndroidTest,119602-consultation/src/jvmAndAndroidTest,119602-consultation/src/commonTest
-            -Dsonar.java.binaries=consultation/build/classes/kotlin/jvm,consultation-dss/build/classes/kotlin/jvm,119602-data-model/build/classes/kotlin/jvm,119602-consultation/build/classes/kotlin/jvm
-            -Dsonar.kotlin.binaries=consultation/build/classes/kotlin/jvm,consultation-dss/build/classes/kotlin/jvm,119602-data-model/build/classes/kotlin/jvm,119602-consultation/build/classes/kotlin/jvm
+            -Dsonar.sources=consultation/src,consultation-dss/src,119602-data-model/src,119602-consultation/src
+            -Dsonar.tests=consultation/src,consultation-dss/src,119602-data-model/src,119602-consultation/src
       - uses: actions/setup-node@v7
         if: (github.repository_owner == 'eu-digital-identity-wallet' && github.ref_name == 'main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))
         with:

@@ -49,8 +49,8 @@ Cinterop works like JNI with the native library not bundled:
   provided, you get the undefined-symbol error above.
 
 This is the normal, intended shape of cinterop — the same contract as `androidx.sqlite`
-expecting consumers to link `-lsqlite3`. The library's own build wires PKIXBridge in (`consultation/build.gradle.kts`);
-**that wiring is never propagated to consumers.**
+expecting consumers to link `-lsqlite3`. The library's own build wires PKIXBridge in internally;
+**that wiring is never propagated to Maven consumers.**
 
 ### Why it is easy to be surprised
 
@@ -93,22 +93,22 @@ is why its binary carries the merged `PKIXBridge` objects.
 
 All of the following require macOS with Xcode. Pick one:
 
-1. **From this repository (recommended):** the Gradle task builds the framework locally.
+1. **From this repository (recommended):** the Kotlin Toolchain plugin builds the framework locally.
 
    ```bash
-   ./gradlew :etsi-1196x2-ios:buildPKIXBridge
-   # Output: ios/cinterop/build/PKIXBridge.xcframework
+   ./kotlin do buildXcframework
+   # Output: PKIXBridge/build/PKIXBridge.xcframework
    ```
 
 2. **The build script directly:**
 
    ```bash
-   ios/cinterop/scripts/build-xcframework.sh
+   PKIXBridge/scripts/build-xcframework.sh
    ```
 
-3. **The standalone SwiftPM package** in this repo (`ios/cinterop/Package.swift`)
-   builds the same sources; copy `ios/cinterop/Sources/PKIXBridge` into your project and
-   add it as a local Swift package, or build with `swift build`.
+3. **From the standalone SwiftPM repository** (`PKIXBridge/Package.swift`):
+   clone or add as a Git dependency, build with `swift build`, or integrate as an
+   embedded Swift Package into your Xcode project.
 
 ---
 
@@ -144,10 +144,9 @@ kotlin {
 }
 ```
 
-`binaries.all` mirrors the library's own build (`consultation/build.gradle.kts`). When a framework is built from these
-klibs, `PKIXBridge`
-(a static archive) is merged into the framework binary, so there is no runtime dependency
-on a separate `PKIXBridge` framework — the `-L${swiftShims}/…` lines carry the Swift
+`binaries.all` follows the same linking pattern as the umbrella framework (`ios-umbrella/build.gradle.kts`).
+When a framework is built from these klibs, `PKIXBridge` (a static archive) is merged into the framework binary,
+so there is no runtime dependency on a separate `PKIXBridge` framework — the `-L${swiftShims}/…` lines carry the Swift
 ABI-compatibility shims that its objects force-load.
 
 ### App targets (Xcode)

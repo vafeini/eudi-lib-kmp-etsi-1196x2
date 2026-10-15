@@ -1,0 +1,32 @@
+# Shared publishing configuration for all publishable modules.
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    publish: true
+
+settings:
+  publishing:
+    group: eu.europa.ec.eudi
+    version: 0.4.0-alpha.5-SNAPSHOT
+    signArtifacts: true
+    publishSources: true
+    mavenCentral:
+      enabled: true
+      # Mirrors the former SONATYPE_AUTOMATIC_RELEASE=false Gradle setting: stage the deployment
+      # and wait for manual release via the Central Portal UI instead of auto-publishing.
+      publishingMode: manual
+    pom:
+      name: EUDI ETSI 1196x2 library
+      description: A library for cheking certificates against ETSI 1196x2 standards
+      url: https://github.com/eu-digital-identity-wallet/eudi-lib-kmp-etsi-1196x2
+      scm:
+        url: https://github.com/eu-digital-identity-wallet/eudi-lib-kmp-etsi-1196x2.git
+        connection: scm:git:git://github.com/eu-digital-identity-wallet/eudi-lib-kmp-etsi-1196x2.git
+        developerConnection: scm:git:ssh://git@github.com/eu-digital-identity-wallet/eudi-lib-kmp-etsi-1196x2.git
+      licenses:
+        - name: The Apache Software License, Version 2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+      developers:
+        - name: EUDI Team
+          id: eudi
+          url: https://github.com/eu-digital-identity-wallet

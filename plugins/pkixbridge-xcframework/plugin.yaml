@@ -1,0 +1,9 @@
+tasks:
+  buildXcframework:
+    action: !eu.europa.ec.eudi.plugins.pkixbridge.tasks.buildXcframework
+      pkixbridgeDir: ${module.rootDir}/../PKIXBridge
+      outputDir: ${taskOutputDir}
+      settings: ${pluginSettings}
+
+commands:
+  - buildXcframework
