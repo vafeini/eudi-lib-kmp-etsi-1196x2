@@ -12,6 +12,18 @@ env:
   KOTLIN_CLI_NO_WELCOME_BANNER: "1"
 
 jobs:
+
+  logging:
+    name: Logging
+    runs-on: macos-latest
+    steps:
+      - name: Swift version
+        run: |
+          swift --version
+      - name: Swift package manager
+        run: |
+          swift package --package-path /tmp/test-pkix describe
+
   build-toolchain:
     name: Build
     runs-on: ${{ matrix.os }}
@@ -26,10 +38,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-#      - name: Setup Kotlin toolchain
-#        run: |
-#          curl -fsSL https://kotl.in/install.sh | sh
-#          exec $SHELL
       - name: Build
         env:
           CI: true
@@ -37,7 +45,7 @@ jobs:
       - name: Test
         env:
           CI: true
-        run: ./kotlin test --p jvm
+        run: ./kotlin test -p jvm
       - id: extract
         if: matrix.os == 'ubuntu-latest' # Extract version only once
         name: Extract code version
