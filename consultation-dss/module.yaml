@@ -1,0 +1,54 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android]
+
+description: A library for checking certificates against ETSI 1196x2 standards
+
+apply:
+  - //publishing.module-template.yaml
+
+aliases:
+  - jvmAndAndroid: [jvm, android]
+
+dependencies:
+  - //consultation: exported
+
+dependencies@jvmAndAndroid:
+  - bom: $libs.dss.bom
+  - $libs.dss.validation
+  - $libs.dss.service
+  - $libs.dss.tsl.validation: exported
+  - $libs.dss.utils
+
+dependencies@android:
+  - $libs.dss.utils.guava
+  - $libs.jaxb.runtime
+  - $libs.jaxb.core
+  - xerces:xercesImpl:2.12.2
+
+test-dependencies:
+  - $libs.kotlinx.coroutines.test
+
+test-dependencies@jvmAndAndroid:
+  - $libs.slf4j.simple
+  - $libs.dss.utils.guava
+
+settings:
+  kotlin:
+    languageVersion: 2.2
+    optIns:
+      - kotlin.io.encoding.ExperimentalEncodingApi
+      - kotlin.ExperimentalStdlibApi
+      - kotlin.time.ExperimentalTime
+      - kotlin.contracts.ExperimentalContracts
+    explicitApi: warning
+  android:
+    namespace: eu.europa.ec.eudi.etsi1196x2.consultation.dss
+    compileSdk: 34
+    minSdk: 26
+  jvm:
+    jdk:
+      version: 17
+  publishing:
+    enabled: true
+    artifactId: etsi-1196x2-consultation-dss

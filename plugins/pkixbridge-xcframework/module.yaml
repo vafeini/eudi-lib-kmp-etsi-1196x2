@@ -1,0 +1,14 @@
+product: jvm/amper-plugin
+
+description: Kotlin Toolchain plugin for building PKIXBridge xcframework on macOS
+
+pluginInfo:
+  id: pkixbridge-xcframework
+  settingsClass: eu.europa.ec.eudi.plugins.pkixbridge.BuildXcframeworkSettings
+
+settings:
+  jvm:
+    jdk:
+      version: 17
+  kotlin:
+    languageVersion: 2.2

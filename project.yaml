@@ -1,0 +1,9 @@
+modules:
+  - 119602-consultation
+  - 119602-data-model
+  - consultation
+  - consultation-dss
+  - plugins/pkixbridge-xcframework
+
+plugins:
+  - ./plugins/pkixbridge-xcframework

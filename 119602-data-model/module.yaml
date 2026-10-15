@@ -1,0 +1,44 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android, iosArm64, iosX64, iosSimulatorArm64]
+
+description: A library for checking certificates against ETSI 1196x2 standards
+
+apply:
+  - //publishing.module-template.yaml
+
+aliases:
+  - jvmAndAndroid: [jvm, android]
+
+dependencies:
+  - $libs.kotlinx.serialization.core: exported
+  - $libs.kotlinx.serialization.json: exported
+  - $libs.kotlinx.coroutines.core: exported
+  - $libs.kotlinx.datetime: exported
+
+test-dependencies:
+  - $libs.kotlinx.coroutines.test
+
+settings:
+  kotlin:
+    languageVersion: 2.2
+    serialization: enabled
+    optIns:
+      - kotlinx.serialization.ExperimentalSerializationApi
+      - kotlin.io.encoding.ExperimentalEncodingApi
+      - kotlin.ExperimentalStdlibApi
+      - kotlin.time.ExperimentalTime
+      - kotlin.contracts.ExperimentalContracts
+    freeCompilerArgs:
+      - -Xconsistent-data-class-copy-visibility
+    explicitApi: warning
+  android:
+    namespace: eu.europa.ec.eudi.etsi119602.datamodel
+    compileSdk: 34
+    minSdk: 26
+  jvm:
+    jdk:
+      version: 17
+  publishing:
+    enabled: true
+    artifactId: etsi-119602-data-model
