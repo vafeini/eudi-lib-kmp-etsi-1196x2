@@ -20,9 +20,11 @@ dependencies@jvmAndAndroid:
 
 dependencies@ios:
   - swiftPackage:
+      products: [PKIXBridge]
       repository: https://github.com/vafeini/PKIXBridge.git
-      version: v0.0.1
-      products: ["PKIXBridge"]
+      version:
+        type: revision
+        value: 96840f02110407e164cfb5a27eb9b8ac3bf32617
 
 test-dependencies:
   - $libs.kotlinx.coroutines.test
