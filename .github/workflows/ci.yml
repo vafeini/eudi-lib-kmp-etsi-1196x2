@@ -12,18 +12,6 @@ env:
   KOTLIN_CLI_NO_WELCOME_BANNER: "1"
 
 jobs:
-
-  logging:
-    name: Logging
-    runs-on: macos-latest
-    steps:
-      - name: Swift version
-        run: |
-          swift --version
-      - name: Swift package manager
-        run: |
-          swift package --package-path /tmp/test-pkix describe
-
   build-toolchain:
     name: Build
     runs-on: ${{ matrix.os }}
@@ -38,6 +26,29 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Install Kotlin toolchain
+        run: |
+          curl -fsSL https://kotl.in/install.sh | sh       
+          exec $SHELL
+      - name: Diagnostics
+        run: |          
+          ./kotlin show modules
+      - name: Diagnostics ios
+        if: matrix.os == 'macos-latest'
+        run: |
+          swift --version
+      - name: Diagnose SwiftPM manifest evaluation
+        if: matrix.os == 'macos-latest'
+        run: |
+          # Clone the PKIXBridge repo temporarily
+          git clone --depth 1 --branch v0.0.1 https://github.com/vafeini/PKIXBridge.git /tmp/pkixbridge-test
+          cd /tmp/pkixbridge-test
+
+          # Try to evaluate the manifest directly with Swift
+          swift package describe
+
+          # Try to resolve dependencies
+          swift package resolve
       - name: Build
         env:
           CI: true
