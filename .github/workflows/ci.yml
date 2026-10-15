@@ -26,10 +26,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Setup Kotlin toolchain
-        run: |
-          curl -fsSL https://kotl.in/install.sh | sh          
-          exec $SHELL
+#      - name: Setup Kotlin toolchain
+#        run: |
+#          curl -fsSL https://kotl.in/install.sh | sh
+#          exec $SHELL
       - name: Build
         env:
           CI: true
