@@ -15,13 +15,13 @@
  */
 package eu.europa.ec.eudi.etsi1196x2.consultation
 
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXConfiguration
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXRevocationMethod
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXRevocationMethodAnyPreferCRL
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXRevocationMethodAnyPreferOCSP
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXRevocationMethodCRL
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXRevocationMethodOCSP
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXValidator
+import swiftPMImport.PKIXConfiguration
+import swiftPMImport.PKIXRevocationMethod
+import swiftPMImport.PKIXRevocationMethodAnyPreferCRL
+import swiftPMImport.PKIXRevocationMethodAnyPreferOCSP
+import swiftPMImport.PKIXRevocationMethodCRL
+import swiftPMImport.PKIXRevocationMethodOCSP
+import swiftPMImport.PKIXValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext

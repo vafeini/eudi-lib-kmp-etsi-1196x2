@@ -30,25 +30,6 @@ jobs:
         run: |
           curl -fsSL https://kotl.in/install.sh | sh       
           exec $SHELL
-      - name: Diagnostics
-        run: |          
-          ./kotlin show modules
-      - name: Diagnostics ios
-        if: matrix.os == 'macos-latest'
-        run: |
-          swift --version
-#      - name: Diagnose SwiftPM manifest evaluation
-#        if: matrix.os == 'macos-latest'
-#        run: |
-#          # Clone the PKIXBridge repo temporarily
-#          git clone --depth 1 --branch v0.0.1 https://github.com/vafeini/PKIXBridge.git /tmp/pkixbridge-test
-#          cd /tmp/pkixbridge-test
-#
-#          # Try to evaluate the manifest directly with Swift
-#          swift package describe
-#
-#          # Try to resolve dependencies
-#          swift package resolve
       - name: Build
         env:
           CI: true
