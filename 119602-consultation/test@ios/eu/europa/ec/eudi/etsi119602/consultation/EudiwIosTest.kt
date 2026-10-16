@@ -18,7 +18,7 @@ package eu.europa.ec.eudi.etsi119602.consultation
 import eu.europa.ec.eudi.etsi119602.datamodel.PKIObject
 import eu.europa.ec.eudi.etsi119602.datamodel.ServiceDigitalIdentity
 import eu.europa.ec.eudi.etsi1196x2.consultation.*
-import swiftPMImport.119602-consultation.PKIXConfiguration
+import swiftPMImport.`119602-consultation`.PKIXConfiguration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
