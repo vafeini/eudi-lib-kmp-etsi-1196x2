@@ -24,7 +24,7 @@ dependencies@ios:
       repository: https://github.com/vafeini/PKIXBridge.git
       version:
         type: revision
-        value: 96840f02110407e164cfb5a27eb9b8ac3bf32617
+        value: d4318f2724ee330327f5b1ed5f09716c875734fe
 
 test-dependencies:
   - $libs.kotlinx.coroutines.test
