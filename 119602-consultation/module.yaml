@@ -10,36 +10,6 @@ apply:
 aliases:
   - jvmAndAndroid: [jvm, android]
 
-dependencies:
-  - //119602-data-model: exported
-  - //consultation: exported
-  - $libs.atomicfu
-  - $libs.kotlinx.io.core
-  - $libs.ktor.client.core: exported
-
-dependencies@jvmAndAndroid:
-  - $libs.bouncy.castle
-
-dependencies@ios:
-  - swiftPackage:
-      products: [PKIXBridge]
-      repository: https://github.com/vafeini/PKIXBridge.git
-      version:
-        type: revision
-        value: e0d3aee08ea36f26f4f39ff9e49f3b6c1dd65bdc
-
-test-dependencies:
-  - $libs.kotlinx.coroutines.test
-  - $libs.ktor.client.content.negotiation
-  - $libs.ktor.serialization.json
-
-test-dependencies@jvmAndAndroid:
-  - $libs.ktor.client.java
-  - $libs.eudi.lib.jvm.sdjwt
-
-test-dependencies@android:
-  - $libs.ktor.client.okhttp
-
 settings:
   kotlin:
     languageVersion: 2.2
@@ -64,3 +34,35 @@ settings:
   publishing:
     enabled: true
     artifactId: etsi-119602-consultation
+
+
+dependencies:
+  - //119602-data-model: exported
+  - //consultation: exported
+  - $libs.atomicfu
+  - $libs.kotlinx.io.core
+  - $libs.ktor.client.core: exported
+
+dependencies@jvmAndAndroid:
+  - $libs.bouncy.castle
+
+dependencies@ios:
+  - $ktor.client.darwin
+  - swiftPackage:
+      products: [PKIXBridge]
+      repository: https://github.com/vafeini/PKIXBridge.git
+      version:
+        type: revision
+        value: e0d3aee08ea36f26f4f39ff9e49f3b6c1dd65bdc
+
+test-dependencies:
+  - $libs.kotlinx.coroutines.test
+  - $libs.ktor.client.content.negotiation
+  - $libs.ktor.serialization.json
+
+test-dependencies@jvmAndAndroid:
+  - $libs.ktor.client.java
+  - $libs.eudi.lib.jvm.sdjwt
+
+test-dependencies@android:
+  - $libs.ktor.client.okhttp

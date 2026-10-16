@@ -10,15 +10,6 @@ apply:
 aliases:
   - jvmAndAndroid: [jvm, android]
 
-dependencies:
-  - $libs.kotlinx.serialization.core: exported
-  - $libs.kotlinx.serialization.json: exported
-  - $libs.kotlinx.coroutines.core: exported
-  - $libs.kotlinx.datetime: exported
-
-test-dependencies:
-  - $libs.kotlinx.coroutines.test
-
 settings:
   kotlin:
     languageVersion: 2.2
@@ -42,3 +33,13 @@ settings:
   publishing:
     enabled: true
     artifactId: etsi-119602-data-model
+
+dependencies:
+  - $libs.kotlinx.serialization.core: exported
+  - $libs.kotlinx.serialization.json: exported
+  - $libs.kotlinx.coroutines.core: exported
+  - $libs.kotlinx.datetime: exported
+
+test-dependencies:
+  - $libs.kotlinx.coroutines.test
+

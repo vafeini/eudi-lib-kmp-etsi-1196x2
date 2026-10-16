@@ -10,6 +10,26 @@ apply:
 aliases:
   - jvmAndAndroid: [jvm, android]
 
+settings:
+  kotlin:
+    languageVersion: 2.2
+    optIns:
+      - kotlin.io.encoding.ExperimentalEncodingApi
+      - kotlin.ExperimentalStdlibApi
+      - kotlin.time.ExperimentalTime
+      - kotlin.contracts.ExperimentalContracts
+    explicitApi: warning
+  android:
+    namespace: eu.europa.ec.eudi.etsi1196x2.consultation.dss
+    compileSdk: 34
+    minSdk: 26
+  jvm:
+    jdk:
+      version: 17
+  publishing:
+    enabled: true
+    artifactId: etsi-1196x2-consultation-dss
+
 dependencies:
   - //consultation: exported
 
@@ -32,23 +52,3 @@ test-dependencies:
 test-dependencies@jvmAndAndroid:
   - $libs.slf4j.simple
   - $libs.dss.utils.guava
-
-settings:
-  kotlin:
-    languageVersion: 2.2
-    optIns:
-      - kotlin.io.encoding.ExperimentalEncodingApi
-      - kotlin.ExperimentalStdlibApi
-      - kotlin.time.ExperimentalTime
-      - kotlin.contracts.ExperimentalContracts
-    explicitApi: warning
-  android:
-    namespace: eu.europa.ec.eudi.etsi1196x2.consultation.dss
-    compileSdk: 34
-    minSdk: 26
-  jvm:
-    jdk:
-      version: 17
-  publishing:
-    enabled: true
-    artifactId: etsi-1196x2-consultation-dss

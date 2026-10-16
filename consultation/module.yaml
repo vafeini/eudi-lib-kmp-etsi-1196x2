@@ -10,25 +10,6 @@ apply:
 aliases:
   - jvmAndAndroid: [jvm, android]
 
-dependencies:
-  - $libs.kotlinx.coroutines.core: exported
-  - $libs.atomicfu
-
-dependencies@jvmAndAndroid:
-  - $libs.bouncy.castle
-  - $libs.slf4j.api
-
-dependencies@ios:
-  - swiftPackage:
-      products: [PKIXBridge]
-      repository: https://github.com/vafeini/PKIXBridge.git
-      version:
-        type: revision
-        value: e0d3aee08ea36f26f4f39ff9e49f3b6c1dd65bdc
-
-test-dependencies:
-  - $libs.kotlinx.coroutines.test
-
 settings:
   kotlin:
     languageVersion: 2.2
@@ -49,3 +30,22 @@ settings:
   publishing:
     enabled: true
     artifactId: etsi-1196x2-consultation
+
+dependencies:
+  - $libs.kotlinx.coroutines.core: exported
+  - $libs.atomicfu
+
+dependencies@jvmAndAndroid:
+  - $libs.bouncy.castle
+  - $libs.slf4j.api
+
+dependencies@ios:
+  - swiftPackage:
+      products: [PKIXBridge]
+      repository: https://github.com/vafeini/PKIXBridge.git
+      version:
+        type: revision
+        value: e0d3aee08ea36f26f4f39ff9e49f3b6c1dd65bdc
+
+test-dependencies:
+  - $libs.kotlinx.coroutines.test
