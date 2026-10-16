@@ -15,7 +15,7 @@
  */
 package eu.europa.ec.eudi.etsi1196x2.consultation.certs
 
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXCertificateInspector
+import swiftPMImport.consultation.PKIXCertificateInspector
 import eu.europa.ec.eudi.etsi1196x2.consultation.toByteArray
 import platform.Foundation.NSData
 import platform.Foundation.NSNumber

@@ -15,9 +15,9 @@
  */
 package eu.europa.ec.eudi.etsi1196x2.consultation
 
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXConfiguration
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXRevocationMethodCRL
-import eu.europa.ec.eudi.etsi1196x2.consultation.pkix.PKIXRevocationMethodOCSP
+import swiftPMImport.consultation.PKIXConfiguration
+import swiftPMImport.consultation.PKIXRevocationMethodCRL
+import swiftPMImport.consultation.PKIXRevocationMethodOCSP
 import kotlinx.coroutines.test.runTest
 import platform.Foundation.NSData
 import kotlin.test.Test
