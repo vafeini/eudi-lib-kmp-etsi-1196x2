@@ -12,6 +12,7 @@ aliases:
 
 settings:
   kotlin:
+    compileIncrementally: false
     languageVersion: 2.2
     optIns:
       - kotlin.io.encoding.ExperimentalEncodingApi
