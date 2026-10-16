@@ -307,7 +307,7 @@ graph LR
 **Typical Usage Flow:**
 
 1. **Deserialize LoTE**: Use this module to parse LoTE JSON documents
-2. **Extract Trust Anchors**: Use `119602-consultation` (when available) to extract certificates
+2. **Extract Trust Anchors**: Use `consultation119602` (when available) to extract certificates
 3. **Validate Chains**: Use `consultation` module to validate certificate chains against extracted anchors
 
 ---

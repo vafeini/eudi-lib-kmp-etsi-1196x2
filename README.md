@@ -9,7 +9,7 @@ the [EUDI Wallet Reference Implementation project description](https://github.co
 
 ## Quick Links
 
-- **[119602-consultation Module](./119602-consultation/README.md)** - ETSI TS 119 602 LoTE-based validation
+- **[119602-consultation Module](consultation119602/README.md)** - ETSI TS 119 602 LoTE-based validation
 - **[119602-data-model Module](./119602-data-model/README.md)** - ETSI TS 119 602 LoTE JSON data model
 - **[Consultation Module](./consultation/README.md)** - Core abstractions for certificate chain validation
 - **[Consultation-DSS Module](./consultation-dss/README.md)** - ETSI TS 119 612 Trusted Lists support via DSS
@@ -136,7 +136,7 @@ Xcode (app) integration, and troubleshooting.
 
 The library is divided into four modules:
 
-### 1. [119602-consultation](./119602-consultation/README.md)
+### 1. [119602-consultation](consultation119602/README.md)
 
 Implements certificate chain validation against ETSI TS 119 602 Lists of Trusted Entities (LoTE).
 - **Features**: LoTE document fetching, trust anchor extraction, profile-specific certificate constraints for PID/Wallet/WRPAC/WRPRC providers.

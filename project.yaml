@@ -1,5 +1,5 @@
 modules:
-  - 119602-consultation
+  - consultation119602
   - 119602-data-model
   - consultation
   - consultation-dss
