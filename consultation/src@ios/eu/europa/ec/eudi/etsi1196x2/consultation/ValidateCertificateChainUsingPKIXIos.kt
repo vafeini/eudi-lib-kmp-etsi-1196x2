@@ -15,13 +15,13 @@
  */
 package eu.europa.ec.eudi.etsi1196x2.consultation
 
-import swiftPMImport.PKIXBridge.PKIXConfiguration
-import swiftPMImport.PKIXBridge.PKIXRevocationMethod
-import swiftPMImport.PKIXBridge.PKIXRevocationMethodAnyPreferCRL
-import swiftPMImport.PKIXBridge.PKIXRevocationMethodAnyPreferOCSP
-import swiftPMImport.PKIXBridge.PKIXRevocationMethodCRL
-import swiftPMImport.PKIXBridge.PKIXRevocationMethodOCSP
-import swiftPMImport.PKIXBridge.PKIXValidator
+import swiftPMImport.consultation.PKIXConfiguration
+import swiftPMImport.consultation.PKIXRevocationMethod
+import swiftPMImport.consultation.PKIXRevocationMethodAnyPreferCRL
+import swiftPMImport.consultation.PKIXRevocationMethodAnyPreferOCSP
+import swiftPMImport.consultation.PKIXRevocationMethodCRL
+import swiftPMImport.consultation.PKIXRevocationMethodOCSP
+import swiftPMImport.consultation.PKIXValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
