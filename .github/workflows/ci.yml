@@ -65,6 +65,18 @@ jobs:
         run: |
           echo "CODE_VERSION=$(awk -F': *' '/^    version:/{print $2; exit}' publishing.module-template.yaml)" >> $GITHUB_OUTPUT
 
+  publish-to-maven-local:
+    name: Publish to local maven
+    needs: [ build-toolchain ]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Publish to maven local
+        env:
+          KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+          KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
+        run: ./kotlin publish mavenLocal
+
   publish-to-sonatype-snapshot:
     name: Publish to sonatype.org (SNAPSHOT)
     needs: [ build-toolchain ]

@@ -6,9 +6,12 @@ pluginInfo:
   id: pkixbridge-xcframework
   settingsClass: eu.europa.ec.eudi.plugins.pkixbridge.BuildXcframeworkSettings
 
+apply:
+  - //publishing.module-template.yaml
+
 settings:
+  kotlin:
+    languageVersion: 2.2
   jvm:
     jdk:
       version: 17
-  kotlin:
-    languageVersion: 2.2
