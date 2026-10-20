@@ -35,7 +35,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - run: ./gradlew test koverXmlReport
+      - run: |
+          ./kotlin task :119602-data-model:kover-maven-plugin.report-xml
+          ./kotlin task :consultation:kover-maven-plugin.report-xml
+          ./kotlin task :consultation119602:kover-maven-plugin.report-xml 
+          ./kotlin task :consultation-dss:kover-maven-plugin.report-xml
+
       - uses: sonarsource/sonarqube-scan-action@v8.2.2
         if: (github.event_name == 'push'|| github.event_name == 'workflow_dispatch')
         with:
@@ -45,11 +50,11 @@ jobs:
             -Dsonar.projectKey=${{ env.PROJECT_KEY }}
             -Dsonar.scanner.skipJreProvisioning=true
             -Dsonar.language=kotlin
-            -Dsonar.coverage.jacoco.xmlReportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
-            -Dsonar.kotlin.coverage.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
-            -Dsonar.kotlin.multiplatform.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
-            -Dsonar.sources=consultation/src,consultation-dss/src,119602-data-model/src,119602-consultation/src
-            -Dsonar.tests=consultation/src,consultation-dss/src,119602-data-model/src,119602-consultation/src
+            -Dsonar.coverage.jacoco.xmlReportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,consultation119602/build/reports/kover/report.xml
+            -Dsonar.kotlin.coverage.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,consultation119602/build/reports/kover/report.xml
+            -Dsonar.kotlin.multiplatform.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,consultation119602/build/reports/kover/report.xml
+            -Dsonar.sources=consultation/src,consultation/src@jvmAndAndroid,consultation-dss/src@jvmAndAndroid,119602-data-model/src,119602-data-model/src@jvmAndAndroid,consultation119602/src,consultation119602/src@jvmAndAndroid
+            -Dsonar.tests=consultation/test,consultation/test@jvmAndAndroid,consultation-dss/test@jvmAndAndroid,119602-data-model/test@jvmAndAndroid,consultation119602/test,consultation119602/test@jvmAndAndroid
       - uses: sonarsource/sonarqube-scan-action@v8.2.2
         if: (github.event_name == 'pull_request_target')
         with:
@@ -62,11 +67,11 @@ jobs:
             -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
             -Dsonar.scanner.skipJreProvisioning=true
             -Dsonar.language=kotlin
-            -Dsonar.coverage.jacoco.xmlReportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
-            -Dsonar.kotlin.coverage.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
-            -Dsonar.kotlin.multiplatform.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,119602-consultation/build/reports/kover/report.xml
-            -Dsonar.sources=consultation/src,consultation-dss/src,119602-data-model/src,119602-consultation/src
-            -Dsonar.tests=consultation/src,consultation-dss/src,119602-data-model/src,119602-consultation/src
+            -Dsonar.coverage.jacoco.xmlReportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,consultation119602/build/reports/kover/report.xml
+            -Dsonar.kotlin.coverage.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,consultation119602/build/reports/kover/report.xml
+            -Dsonar.kotlin.multiplatform.reportPaths=consultation/build/reports/kover/report.xml,consultation-dss/build/reports/kover/report.xml,119602-data-model/build/reports/kover/report.xml,consultation119602/build/reports/kover/report.xml
+            -Dsonar.sources=consultation/src,consultation/src@jvmAndAndroid,consultation-dss/src@jvmAndAndroid,119602-data-model/src,119602-data-model/src@jvmAndAndroid,consultation119602/src,consultation119602/src@jvmAndAndroid
+            -Dsonar.tests=consultation/test,consultation/test@jvmAndAndroid,consultation-dss/test@jvmAndAndroid,119602-data-model/test@jvmAndAndroid,consultation119602/test,consultation119602/test@jvmAndAndroid
       - uses: actions/setup-node@v7
         if: (github.repository_owner == 'eu-digital-identity-wallet' && github.ref_name == 'main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))
         with:

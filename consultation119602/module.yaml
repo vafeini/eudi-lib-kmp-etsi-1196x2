@@ -67,3 +67,9 @@ test-dependencies@jvmAndAndroid:
 
 test-dependencies@android:
   - $libs.ktor.client.okhttp
+
+mavenPlugins:
+  kover-maven-plugin.report-xml:
+    enabled: true
+    configuration:
+      xmlFile: build/reports/kover/report.xml

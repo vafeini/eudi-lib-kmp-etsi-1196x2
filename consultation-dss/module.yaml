@@ -45,3 +45,9 @@ test-dependencies:
   - $libs.kotlinx.coroutines.test
   - $libs.slf4j.simple
   - $libs.dss.utils.guava
+
+mavenPlugins:
+  kover-maven-plugin.report-xml:
+    enabled: true
+    configuration:
+      xmlFile: build/reports/kover/report.xml

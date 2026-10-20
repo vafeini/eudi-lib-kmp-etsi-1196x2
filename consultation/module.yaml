@@ -50,3 +50,9 @@ dependencies@ios:
 
 test-dependencies:
   - $libs.kotlinx.coroutines.test
+
+mavenPlugins:
+  kover-maven-plugin.report-xml:
+    enabled: true
+    configuration:
+      xmlFile: build/reports/kover/report.xml
