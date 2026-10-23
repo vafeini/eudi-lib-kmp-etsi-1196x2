@@ -9,12 +9,13 @@ settings:
     group: eu.europa.ec.eudi
     version: 0.4.0-alpha.5-SNAPSHOT
     signArtifacts: true
-    publishSources: true
+    publishSources: false
     mavenCentral:
-      enabled: true
-      # Mirrors the former SONATYPE_AUTOMATIC_RELEASE=false Gradle setting: stage the deployment
-      # and wait for manual release via the Central Portal UI instead of auto-publishing.
-      publishingMode: manual
+      enabled: false
+#      # Mirrors the former SONATYPE_AUTOMATIC_RELEASE=false Gradle setting: stage the deployment
+#      # and wait for manual release via the Central Portal UI instead of auto-publishing.
+#      publishingMode: manual
+#      signArtifacts: true
     pom:
       name: EUDI ETSI 1196x2 library
       description: A library for cheking certificates against ETSI 1196x2 standards

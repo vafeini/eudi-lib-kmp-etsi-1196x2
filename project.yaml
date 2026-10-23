@@ -3,10 +3,6 @@ modules:
   - consultation
   - consultation119602
   - consultation-dss
-  - plugins/pkixbridge-xcframework
-
-plugins:
-  - ./plugins/pkixbridge-xcframework
 
 mavenPlugins:
   - org.jetbrains.kotlinx:kover-maven-plugin:0.9.8

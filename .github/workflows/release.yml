@@ -18,7 +18,8 @@ jobs:
       - uses: actions/checkout@v7
       - id: extract
         name: Extract code version from gradle.properties
-        run: echo "CODE_VERSION=$(awk -F= '$1~/version/{print $2}' gradle.properties)" >> $GITHUB_OUTPUT
+        run: |
+          echo "CODE_VERSION=$(awk -F': *' '/^    version:/{print $2; exit}' publishing.module-template.yaml)" >> $GITHUB_OUTPUT
 
   publish-to-sonatype:
     name: Publish to sonatype.org
@@ -32,15 +33,14 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v6
-      - name: Publish with Gradle
+      - name: Publish to Maven Central
         env:
           CI: true
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.OSSRH_GPG_KEY_ID }}
-          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
-        run: ./gradlew publishAllPublicationsToMavenCentral --full-stacktrace
+          KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
+          KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
+          KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        run: ./kotlin publish mavenCentral
 
   publish-xcframework:
     name: Publish xcframework
@@ -64,6 +64,83 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
+      - name: Extract PKIXBridge version
+        id: pkixbridge-version
+        run: |
+           PKIXBRIDGE_VERSION=$(awk -F': *' '/^pkixBridge = /{gsub(/"/, "", $2); print $2}' libs.versions.toml)
+           echo "PKIXBRIDGE_VERSION=$PKIXBRIDGE_VERSION" >> $GITHUB_OUTPUT
+           echo "PKIXBridge version: $PKIXBRIDGE_VERSION"
+
+      - name: Checkout PKIXBridge repository
+        uses: actions/checkout@v7
+        with:
+          repository: vafeini/PKIXBridge
+          ref: ${{ steps.pkixbridge-version.outputs.PKIXBRIDGE_VERSION }}
+          path: .github/temp/PKIXBridge
+
+      - name: Copy PKIXBridge.xcframework to ios-umbrella
+        run: |
+           PKIXBRIDGE_SRC=".github/temp/PKIXBridge/package/PKIXBridge.xcframework"
+           PKIXBRIDGE_DST="ios-umbrella/PKIXBridge/PKIXBridge.xcframework"
+           
+           if [[ ! -d "$PKIXBRIDGE_SRC" ]]; then
+             echo "ERROR: PKIXBridge.xcframework not found at $PKIXBRIDGE_SRC" >&2
+             exit 1
+           fi
+           
+           # Create destination directory if it doesn't exist
+           mkdir -p ios-umbrella/PKIXBridge
+           
+           # Copy the framework
+           cp -r "$PKIXBRIDGE_SRC" "$PKIXBRIDGE_DST"
+           
+           echo "PKIXBridge.xcframework copied successfully"
+           ls -la "$PKIXBRIDGE_DST"
+
+      - name: Publish modules to mavenLocal
+        run: |
+           ./kotlin publish -m 119602-data-model mavenLocal
+           ./kotlin publish -m consultation mavenLocal
+           ./kotlin publish -m consultation119602 mavenLocal
+        env:
+          KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
+
+      - name: Build frameworks
+        run: |
+           cd ios-umbrella 
+           ./gradlew build -PlibraryVersion=${{ needs.extract-code-version.outputs.code-version }}
+
+      - name: Create XCFramework
+        run: |
+           xcrun xcodebuild -create-xcframework \
+             -framework ios-umbrella/build/bin/iosArm64/releaseFramework/EudiEtsi1196x2.framework \
+             -framework ios-umbrella/build/bin/iosX64/releaseFramework/EudiEtsi1196x2.framework \
+             -framework ios-umbrella/build/bin/iosSimulatorArm64/releaseFramework/EudiEtsi1196x2.framework \
+             -output ios-umbrella/build/EudiEtsi1196x2.xcframework
+
+      - name: Package EudiEtsi1196x2.xcframework
+        id: packageEudiEtsi1196x2
+        run: |
+           set -euo pipefail
+
+           XCFRAMEWORK_DIR="ios-umbrella/build/EudiEtsi1196x2.xcframework"
+           ZIP_NAME="EudiEtsi1196x2.xcframework.zip"
+           ZIP_PATH="$GITHUB_WORKSPACE/$ZIP_NAME"
+
+           if [[ ! -d "$XCFRAMEWORK_DIR" ]]; then
+             echo "ERROR: $XCFRAMEWORK_DIR not found." >&2
+             exit 1
+           fi
+
+           ditto -c -k --keepParent "$XCFRAMEWORK_DIR" "$ZIP_PATH"
+
+           XCFRAMEWORK_CHECKSUM=$(swift package compute-checksum "$ZIP_PATH")
+           XCFRAMEWORK_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/$ZIP_NAME"
+           
+           echo "XCFRAMEWORK_CHECKSUM=$XCFRAMEWORK_CHECKSUM" >> "$GITHUB_OUTPUT"
+           echo "XCFRAMEWORK_URL=$XCFRAMEWORK_URL" >> $GITHUB_OUTPUT
+
       - name: Find Artifact Release
         id: release
         uses: softprops/action-gh-release@v3
@@ -71,40 +148,48 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.ref_name }}
 
-      - name: Build XCFramework
-        run: ./gradlew kmmBridgePublish -PENABLE_PUBLISHING=true -PNATIVE_BUILD_TYPE=RELEASE -PGITHUB_PUBLISH_TOKEN="${{ secrets.GITHUB_TOKEN }}" -PGITHUB_REPO="${{ github.repository }}" -PGITHUB_ARTIFACT_RELEASE_ID="${{ steps.release.outputs.id }}" --no-daemon --info --stacktrace
-
-      - name: Package PKIXBridge.xcframework
-        id: checksum
-        run: |
-          set -euo pipefail
-
-          XCFRAMEWORK_DIR="ios/cinterop/build/PKIXBridge.xcframework"
-          ZIP_NAME="PKIXBridge.xcframework.zip"
-          ZIP_PATH="$GITHUB_WORKSPACE/$ZIP_NAME"
-
-          if [[ ! -d "$XCFRAMEWORK_DIR" ]]; then
-            echo "ERROR: $XCFRAMEWORK_DIR not found. Was it built as part of kmmBridgePublish?" >&2
-            exit 1
-          fi
-
-          ditto -c -k --keepParent "$XCFRAMEWORK_DIR" "$ZIP_PATH"
-
-          CHECKSUM=$(swift package compute-checksum "$ZIP_PATH")
-          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
-          echo "PKIXBridge.xcframework.zip SHA-256: $CHECKSUM"
-
-      - name: Upload PKIXBridge.xcframework.zip to release
+      - name: Upload EudiEtsi1196x2.xcframework.zip to release
         uses: softprops/action-gh-release@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.ref_name }}
-          files: PKIXBridge.xcframework.zip
+          files: EudiEtsi1196x2.xcframework.zip
 
-      - name: Update release tag
-        uses: touchlab/ga-update-release-tag@v1
-        id: update-release-tag
-        with:
-          commitMessage: "KMP SPM package release for ${{ github.ref_name }}"
-          tagMessage: "KMP release version ${{ github.ref_name }}"
-          tagVersion: ${{github.ref_name}}-SPM
+      - name: Update Package.swift
+        run: |
+           set -euo pipefail
+           
+           # Read the checksum and URL from previous step outputs
+           XCFRAMEWORK_CHECKSUM="${{ steps.packageEudiEtsi1196x2.outputs.XCFRAMEWORK_CHECKSUM }}"
+           XCFRAMEWORK_URL="${{ steps.packageEudiEtsi1196x2.outputs.XCFRAMEWORK_URL }}"
+           
+           # Validate outputs are not empty
+           if [[ -z "$XCFRAMEWORK_CHECKSUM" ]]; then
+             echo "ERROR: XCFRAMEWORK_CHECKSUM is empty" >&2
+             exit 1
+           fi
+           if [[ -z "$XCFRAMEWORK_URL" ]]; then
+             echo "ERROR: XCFRAMEWORK_URL is empty" >&2
+             exit 1
+           fi
+           
+           # Update Package.swift with computed values
+           sed -i.bak "s|let remoteKotlinUrl = |let remoteKotlinUrl = \"$XCFRAMEWORK_URL\"|" Package.swift
+           sed -i.bak "s|let remoteKotlinChecksum = |let remoteKotlinChecksum = \"$XCFRAMEWORK_CHECKSUM\"|" Package.swift
+           
+           # Display the updated Package.swift for verification
+           echo "Updated Package.swift:"
+           cat Package.swift
+           
+           # Clean up backup files
+           rm -f Package.swift.bak
+
+      - name: Create SPM tag
+        run: |
+          git config user.name "CI Automation"
+          git config user.email "ci-automation@github.actions"
+          
+          git add Package.swift
+          git commit -m "[CI Automation]: Update Package.swift for ${{ github.ref_name }} release"
+          git tag ${{ github.ref_name }}-SPM
+          git push origin ${{ github.ref_name }}-SPM
