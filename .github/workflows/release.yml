@@ -20,6 +20,7 @@ jobs:
         name: Extract code version from gradle.properties
         run: |
           echo "CODE_VERSION=$(awk -F': *' '/^    version:/{print $2; exit}' publishing.module-template.yaml)" >> $GITHUB_OUTPUT
+          echo "Extracted code version: $CODE_VERSION"
 
   publish-to-sonatype:
     name: Publish to sonatype.org
@@ -67,7 +68,7 @@ jobs:
       - name: Extract PKIXBridge version
         id: pkixbridge-version
         run: |
-           PKIXBRIDGE_VERSION=$(awk -F': *' '/^pkixBridge = /{gsub(/"/, "", $2); print $2}' libs.versions.toml)
+           PKIXBRIDGE_VERSION=$(grep "^pkixBridge =" libs.versions.toml | cut -d'"' -f2)
            echo "PKIXBRIDGE_VERSION=$PKIXBRIDGE_VERSION" >> $GITHUB_OUTPUT
            echo "PKIXBridge version: $PKIXBRIDGE_VERSION"
 
@@ -99,9 +100,9 @@ jobs:
 
       - name: Publish modules to mavenLocal
         run: |
-           ./kotlin publish -m 119602-data-model mavenLocal
-           ./kotlin publish -m consultation mavenLocal
-           ./kotlin publish -m consultation119602 mavenLocal
+           ./kotlin publish -m 119602-data-model mavenLocal 
+           ./kotlin publish -m consultation mavenLocal --non-transitive 
+           ./kotlin publish -m consultation119602 mavenLocal --non-transitive
         env:
           KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}

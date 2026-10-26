@@ -7,9 +7,9 @@ repositories:
 settings:
   publishing:
     group: eu.europa.ec.eudi
-    version: 0.4.0-alpha.5-SNAPSHOT
-    signArtifacts: true
-    publishSources: false
+    version: 0.4.0-alpha.5
+    signArtifacts: false
+    publishSources: true
     mavenCentral:
       enabled: false
 #      # Mirrors the former SONATYPE_AUTOMATIC_RELEASE=false Gradle setting: stage the deployment
