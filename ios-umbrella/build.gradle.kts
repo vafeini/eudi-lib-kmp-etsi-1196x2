@@ -95,7 +95,6 @@ kotlin {
     }
 }
 
-// PKIXBridge.xcframework is built externally via Kotlin Toolchain: ./kotlin do buildXcframework
 // This standalone Gradle project assumes it is pre-built and available at projectDir/PKIXBridge/PKIXBridge.xcframework
 
 // A static framework is an `ar` archive, not a link product: the Kotlin/Native compiler leaves

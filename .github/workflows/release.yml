@@ -19,7 +19,8 @@ jobs:
       - id: extract
         name: Extract code version from gradle.properties
         run: |
-          echo "CODE_VERSION=$(awk -F': *' '/^    version:/{print $2; exit}' publishing.module-template.yaml)" >> $GITHUB_OUTPUT
+          CODE_VERSION=$(awk -F': *' '/^    version:/{print $2; exit}' publishing.module-template.yaml)
+          echo "CODE_VERSION=$CODE_VERSION" >> $GITHUB_OUTPUT
           echo "Extracted code version: $CODE_VERSION"
 
   publish-to-sonatype:
@@ -63,7 +64,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: gradle/actions/setup-gradle@v6
+      - name: Publish modules to mavenLocal
+        run: |
+          ./kotlin publish -m 119602-data-model mavenLocal 
+          ./kotlin publish -m consultation mavenLocal --non-transitive 
+          ./kotlin publish -m consultation119602 mavenLocal --non-transitive
+        env:
+          KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
 
       - name: Extract PKIXBridge version
         id: pkixbridge-version
@@ -98,25 +106,63 @@ jobs:
            echo "PKIXBridge.xcframework copied successfully"
            ls -la "$PKIXBRIDGE_DST"
 
-      - name: Publish modules to mavenLocal
-        run: |
-           ./kotlin publish -m 119602-data-model mavenLocal 
-           ./kotlin publish -m consultation mavenLocal --non-transitive 
-           ./kotlin publish -m consultation119602 mavenLocal --non-transitive
-        env:
-          KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
-
+      - uses: gradle/actions/setup-gradle@v6
       - name: Build frameworks
         run: |
-           cd ios-umbrella 
+           echo "Building frameworks..."
+           cd ios-umbrella
            ./gradlew build -PlibraryVersion=${{ needs.extract-code-version.outputs.code-version }}
+
+           ## Verify frameworks were built
+           echo "Verifying frameworks exist..."
+           
+           for framework in \
+             build/bin/iosArm64/releaseFramework/EudiEtsi1196x2.framework \
+             build/bin/iosX64/releaseFramework/EudiEtsi1196x2.framework \
+             build/bin/iosSimulatorArm64/releaseFramework/EudiEtsi1196x2.framework; do
+             if [[ ! -d "$framework" ]]; then
+               echo "ERROR: Framework not found: $framework" >&2
+               echo "Build directory structure:" >&2
+               find build -type d -name "*.framework" 2>/dev/null || echo "No .framework directories found"
+               exit 1
+             fi
+             echo "✓ Found: $framework"
+           done
+     
+           echo "Creating fat binary from simulator slices..."
+           
+           SIM_X64_BIN="build/bin/iosX64/releaseFramework/EudiEtsi1196x2.framework/EudiEtsi1196x2"
+           SIM_ARM64_BIN="build/bin/iosSimulatorArm64/releaseFramework/EudiEtsi1196x2.framework/EudiEtsi1196x2"
+           SIM_ARM64_FW_DIR="build/bin/iosSimulatorArm64/releaseFramework/EudiEtsi1196x2.framework"
+           
+           # Verify binaries exist
+           if [[ ! -f "$SIM_X64_BIN" ]]; then
+             echo "ERROR: Simulator x86_64 binary not found: $SIM_X64_BIN" >&2
+             exit 1
+           fi
+           if [[ ! -f "$SIM_ARM64_BIN" ]]; then
+             echo "ERROR: Simulator ARM64 binary not found: $SIM_ARM64_BIN" >&2
+             exit 1
+           fi
+           
+           # Create fat binary containing both simulator architectures
+           lipo -create "$SIM_X64_BIN" "$SIM_ARM64_BIN" \
+                -output "$SIM_ARM64_FW_DIR/EudiEtsi1196x2-fat"
+           
+           # Replace ARM64 binary with fat binary
+           mv "$SIM_ARM64_BIN" "$SIM_ARM64_BIN-arm64-backup"
+           mv "$SIM_ARM64_FW_DIR/EudiEtsi1196x2-fat" "$SIM_ARM64_BIN"
+           
+           # Verify fat binary contains both architectures
+           echo "Fat binary architectures:"
+           lipo -info "$SIM_ARM64_BIN"
+           
+           echo "✓ Simulator fat binary created successfully"
 
       - name: Create XCFramework
         run: |
            xcrun xcodebuild -create-xcframework \
              -framework ios-umbrella/build/bin/iosArm64/releaseFramework/EudiEtsi1196x2.framework \
-             -framework ios-umbrella/build/bin/iosX64/releaseFramework/EudiEtsi1196x2.framework \
              -framework ios-umbrella/build/bin/iosSimulatorArm64/releaseFramework/EudiEtsi1196x2.framework \
              -output ios-umbrella/build/EudiEtsi1196x2.xcframework
 
@@ -140,7 +186,10 @@ jobs:
            XCFRAMEWORK_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/$ZIP_NAME"
            
            echo "XCFRAMEWORK_CHECKSUM=$XCFRAMEWORK_CHECKSUM" >> "$GITHUB_OUTPUT"
+           echo "Exporting XCFRAMEWORK_URL=$XCFRAMEWORK_URL"
+          
            echo "XCFRAMEWORK_URL=$XCFRAMEWORK_URL" >> $GITHUB_OUTPUT
+           echo "Exporting XCFRAMEWORK_URL=$XCFRAMEWORK_URL"
 
       - name: Find Artifact Release
         id: release
@@ -175,8 +224,8 @@ jobs:
            fi
            
            # Update Package.swift with computed values
-           sed -i.bak "s|let remoteKotlinUrl = |let remoteKotlinUrl = \"$XCFRAMEWORK_URL\"|" Package.swift
-           sed -i.bak "s|let remoteKotlinChecksum = |let remoteKotlinChecksum = \"$XCFRAMEWORK_CHECKSUM\"|" Package.swift
+           sed -i.bak "s|let remoteKotlinUrl = \"\"|let remoteKotlinUrl = \"$XCFRAMEWORK_URL\"|" Package.swift
+           sed -i.bak "s|let remoteKotlinChecksum = \"\"|let remoteKotlinChecksum = \"$XCFRAMEWORK_CHECKSUM\"|" Package.swift
            
            # Display the updated Package.swift for verification
            echo "Updated Package.swift:"

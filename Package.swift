@@ -2,8 +2,8 @@
 import PackageDescription
 
 // CI UPDATABLE (do not edit)
-let remoteKotlinUrl =
-let remoteKotlinChecksum =
+let remoteKotlinUrl = ""
+let remoteKotlinChecksum = ""
 // END CI UPDATABLE (do not edit)
 
 let packageName = "EudiEtsi1196x2"
@@ -11,7 +11,7 @@ let packageName = "EudiEtsi1196x2"
 let package = Package(
     name: packageName,
     platforms: [
-        .iOS(.v13)
+        .iOS(.v16)
     ],
     products: [
         .library(
