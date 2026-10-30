@@ -111,7 +111,7 @@ jobs:
         run: |
            echo "Building frameworks..."
            cd ios-umbrella
-           ./gradlew build -PlibraryVersion=${{ needs.extract-code-version.outputs.code-version }}
+           ./gradlew build -PlibraryVersion=${{ needs.extract-code-version.outputs.code-version }} -Dkotlin.native.jvmArgs=-Xmx6g
 
            ## Verify frameworks were built
            echo "Verifying frameworks exist..."

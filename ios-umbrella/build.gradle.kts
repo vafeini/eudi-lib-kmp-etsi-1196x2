@@ -69,9 +69,12 @@ kotlin {
             // and signing a dynamic framework. This also avoids the duplicate-runtime and
             // dyld-load-order problems that arise when several Kotlin frameworks ship in one app.
             isStatic = true
+            export("eu.europa.ec.eudi:etsi-1196x2-consultation:${findProperty("libraryVersion")}")
+            export("eu.europa.ec.eudi:etsi-119602-consultation:${findProperty("libraryVersion")}")
+            export("eu.europa.ec.eudi:etsi-119602-data-model:${findProperty("libraryVersion")}")
         }
         target.binaries.all {
-            freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=16.0"
+            freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=15.0"
             linkerOpts("-framework", "PKIXBridge", "-F$frameworkSearchPath")
             // Carry the iOS system Swift runtime location as an rpath so dyld can resolve
             linkerOpts("-rpath", "/usr/lib/swift")
