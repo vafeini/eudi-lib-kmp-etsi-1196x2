@@ -32,6 +32,10 @@ settings:
     enabled: true
     artifactId: etsi-1196x2-consultation
 
+settings@ios:
+  kotlin:
+    freeCompilerArgs: ["-Xoverride-konan-properties=minVersion.ios=13.0"]
+
 dependencies:
   - $libs.kotlinx.coroutines.core: exported
   - $libs.atomicfu
@@ -46,7 +50,7 @@ dependencies@ios:
       repository: https://github.com/vafeini/PKIXBridge.git
       version:
         type: revision
-        value: 11077ad39995a48368dae4ec7e58630e86224840
+        value: 8ff2bc326bf1c9a5ee771672350c3fee20e57cc3
 
 test-dependencies:
   - $libs.kotlinx.coroutines.test

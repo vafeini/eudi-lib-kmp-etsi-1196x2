@@ -10,7 +10,7 @@ kotlinx-io = "0.8.2"
 slf4j = "2.0.18"
 jaxb = "4.0.7"
 eudiLibJvmSdjwtKt = "0.20.1"
-pkixBridge = "0b1dd1384eb3fbd468300eb53d67a8f62fc5bede"
+pkixBridge = "8ff2bc326bf1c9a5ee771672350c3fee20e57cc3"
 
 [libraries]
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
