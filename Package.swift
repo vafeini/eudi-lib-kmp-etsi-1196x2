@@ -11,7 +11,7 @@ let packageName = "EudiEtsi1196x2"
 let package = Package(
     name: packageName,
     platforms: [
-        .iOS(.v13)
+        .iOS(.v16)
     ],
     products: [
         .library(
