@@ -38,7 +38,7 @@ settings:
 
 settings@ios:
   kotlin:
-    freeCompilerArgs: ["-Xoverride-konan-properties=minVersion.ios=16.0"]
+    freeCompilerArgs: ["-Xoverride-konan-properties=minVersion.ios=15.0"]
 
 dependencies:
   - //119602-data-model: exported
@@ -57,7 +57,7 @@ dependencies@ios:
       repository: https://github.com/vafeini/PKIXBridge.git
       version:
         type: revision
-        value: ab0db1225c57008ab1047af4fbfa9a4d6b911f0d
+        value: 8cd6c33649919133501a54045b60db544fa7716b
 
 test-dependencies:
   - $libs.kotlinx.coroutines.test

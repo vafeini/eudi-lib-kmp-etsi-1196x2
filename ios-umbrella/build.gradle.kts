@@ -71,7 +71,7 @@ kotlin {
             isStatic = true
         }
         target.binaries.all {
-            freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=16.0"
+            freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=15.0"
             linkerOpts("-framework", "PKIXBridge", "-F$frameworkSearchPath")
             // Carry the iOS system Swift runtime location as an rpath so dyld can resolve
             linkerOpts("-rpath", "/usr/lib/swift")
