@@ -35,6 +35,21 @@ settings:
 settings@ios:
   kotlin:
     freeCompilerArgs: ["-Xoverride-konan-properties=minVersion.ios=15.0"]
+    
+settings@iosArm64:  # Device only
+  kotlin:
+    linkerOptions:
+      - -L/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos
+
+settings@iosX64:  # Simulator x86_64
+  kotlin:
+    linkerOptions:
+      - -L/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator
+
+settings@iosSimulatorArm64:  # Simulator arm64
+  kotlin:
+    linkerOptions:
+      - -L/Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator
 
 dependencies:
   - $libs.kotlinx.coroutines.core: exported

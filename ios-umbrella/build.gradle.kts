@@ -88,9 +88,9 @@ kotlin {
         iosMain {
             dependencies {
                 // Resolve from Maven instead of project refs (standalone Gradle project)
-                api("eu.europa.ec.eudi:etsi-1196x2-consultation:${findProperty("libraryVersion") ?: "0.4.0-alpha.5"}")
-                api("eu.europa.ec.eudi:etsi-119602-consultation:${findProperty("libraryVersion") ?: "0.4.0-alpha.5"}")
-                api("eu.europa.ec.eudi:etsi-119602-data-model:${findProperty("libraryVersion") ?: "0.4.0-alpha.5"}")
+                api("eu.europa.ec.eudi:etsi-1196x2-consultation:${findProperty("libraryVersion")}")
+                api("eu.europa.ec.eudi:etsi-119602-consultation:${findProperty("libraryVersion")}")
+                api("eu.europa.ec.eudi:etsi-119602-data-model:${findProperty("libraryVersion")}")
                 // Darwin (NSURLSession) HTTP engine, linked into the umbrella framework so
                 // HttpClient(Darwin) works at runtime on iOS.
                 implementation(libs.ktor.client.darwin)
